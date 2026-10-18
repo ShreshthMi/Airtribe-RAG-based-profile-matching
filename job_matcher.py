@@ -280,7 +280,15 @@ class JobMatcher:
 
     def match(self, jd: str, k: int = 10, must_haves: list[str] | None = None, auto_requirements: bool = True,
               critical_skills: list[str] | None = None, min_score: int = 0,
-              weights: ScoreWeights | None = None) -> dict:
+              weights: ScoreWeights | None = None, apply_filters: bool = True) -> dict:
+        """Rank candidates against `jd`.
+
+        With `apply_filters=False` nobody is excluded: must-haves are still parsed, so
+        experience fit and the reasoning still reflect them, but a candidate who fails
+        one is ranked and annotated with `failed_requirements` instead of being moved to
+        `filtered_out`. That is what the evaluation harness measures, so retrieval
+        quality is scored on the ranking rather than on the post-filter shortlist.
+        """
         if not jd or not jd.strip():
             raise MatcherError("The job description is empty.")
         weights = weights or DEFAULT_WEIGHTS
@@ -317,7 +325,7 @@ class JobMatcher:
 
             checks = [(r, *r.check(cand)) for r in requirements]
             failed = [f"{r.raw} (has {note})" for r, ok, note in checks if not ok]
-            if failed:
+            if failed and apply_filters:
                 filtered_out.append({"candidate_name": cand["candidate_name"], "resume_path": cand["resume_path"],
                                      "match_score": score, "failed_requirements": failed})
                 continue
@@ -341,6 +349,7 @@ class JobMatcher:
                                     "keyword_bm25": round(100 * kw.get(cid, 0.0)), "experience_fit": round(100 * exp_fit)},
                 "experience_years": cand["experience_years"],
                 "education": cand["education"],
+                "failed_requirements": failed,
             })
 
         # Explicit tie-break on resume_path so equal scores rank identically on every

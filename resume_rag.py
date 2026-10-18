@@ -21,6 +21,7 @@ import hashlib
 import json
 import re
 import sys
+import time
 from dataclasses import dataclass, field, asdict
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -43,8 +44,14 @@ SECTION_ALIASES = {
     "projects": ["projects", "key projects", "personal projects", "selected projects"],
     "certifications": ["certifications", "certificates", "licenses", "awards", "achievements"],
     "publications": ["publications", "research"],
+    "interests": ["interests", "hobbies", "activities", "personal interests"],
+    "references": ["references", "referees"],
 }
 _HEADING_LOOKUP = {alias: canon for canon, aliases in SECTION_ALIASES.items() for alias in aliases}
+
+# Recognised so they are chunked and retrievable, but excluded from skill and
+# experience extraction: a hobby ("Monty Python", "plays Go") is not a competency.
+NON_SKILL_SECTIONS = frozenset({"interests", "references"})
 
 
 def _match_heading(line: str) -> str | None:
@@ -127,7 +134,10 @@ SKILL_ALIASES: dict[str, list[str]] = {
     "LangChain": ["langchain"], "Vector Databases": ["vector database", "vector databases", "chromadb", "pinecone", "weaviate", "faiss"],
     "Statistics": ["statistics", "statistical modeling", "a/b testing", "hypothesis testing"],
     "Data Visualization": ["data visualization", "tableau", "power bi", "matplotlib", "seaborn"],
-    "AWS": ["aws", "amazon web services", "ec2", "s3", "lambda", "sagemaker"], "GCP": ["gcp", "google cloud", "bigquery", "vertex ai"],
+    "AWS": ["aws", "amazon web services", "ec2", "s3", "lambda", "sagemaker"], "GCP": ["gcp", "google cloud", "vertex ai"],
+    # Warehouses are their own skills: rolling BigQuery up into GCP made a JD that asks
+    # for BigQuery silently demand all of GCP as a critical skill.
+    "BigQuery": ["bigquery", "big query"], "Redshift": ["redshift"],
     "Azure": ["azure"], "Docker": ["docker", "containers"], "Kubernetes": ["kubernetes", "k8s", "eks", "gke"],
     "Terraform": ["terraform"], "CI/CD": ["ci/cd", "jenkins", "github actions", "gitlab ci", "circleci"],
     "Linux": ["linux", "bash", "shell scripting"], "Git": ["git"],
@@ -161,8 +171,23 @@ SKILL_IMPLIES = {
 }
 
 
+# Phrases that contain a skill token without being a mention of the skill.
+_FALSE_FRIEND_RE = re.compile(r"monty\s+python", re.IGNORECASE)
+
+
+def professional_text(sections: dict[str, str], full_text: str) -> str:
+    """`full_text` minus the sections that should not contribute skills.
+
+    Falls back to the full text when no section was recognised, so a resume written
+    as unstructured prose still yields skills.
+    """
+    usable = {k: v for k, v in sections.items() if k not in NON_SKILL_SECTIONS}
+    return "\n\n".join(usable.values()) if usable else full_text
+
+
 def extract_skills(text: str) -> list[str]:
     """Return canonical skill names mentioned in `text`."""
+    text = _FALSE_FRIEND_RE.sub(" ", text)
     found = []
     for canon, pattern in _SKILL_PATTERNS.items():
         special = _SPECIAL_CASE.get(canon)
@@ -223,7 +248,30 @@ def _merged_years(intervals: list[tuple[int, int]]) -> float:
     return round(total / 12, 1)
 
 
-def extract_experience(experience_text: str, full_text: str) -> tuple[float, dict[str, float]]:
+def _role_block_start(text: str, match_start: int) -> int:
+    """Index where the role containing the date range at `match_start` begins.
+
+    Usually the dates sit on the role's own title line ("Engineer, Acme  2019 - 2021"),
+    so the block starts there. When the line holds a date range and nothing else
+    ("Jan 2019 - Present" under a separate title line), the title is the previous
+    non-empty line and the block starts there instead.
+    """
+    line_start = text.rfind("\n", 0, match_start) + 1
+    line_end = text.find("\n", match_start)
+    line = text[line_start: line_end if line_end != -1 else len(text)]
+    if re.search(r"[A-Za-z]", _RANGE_RE.sub(" ", line)):
+        return line_start  # the line names the role itself
+    previous_end = line_start - 1
+    while previous_end > 0:
+        previous_start = text.rfind("\n", 0, previous_end) + 1
+        if text[previous_start:previous_end].strip():
+            return previous_start
+        previous_end = previous_start - 1
+    return line_start
+
+
+def extract_experience(experience_text: str, full_text: str,
+                       today: date | None = None) -> tuple[float, dict[str, float]]:
     """Total years of experience and years per skill.
 
     Each date range in the Experience section starts a role; the role's text runs
@@ -231,16 +279,16 @@ def extract_experience(experience_text: str, full_text: str) -> tuple[float, dic
     Explicit statements like "6 years of Python" or "8+ years of experience" are
     used when they give a higher number.
     """
-    ranges = find_date_ranges(experience_text)
+    ranges = find_date_ranges(experience_text, today=today)
     role_intervals: list[tuple[int, int]] = []
     per_skill: dict[str, list[tuple[int, int]]] = {}
+    # One role spans its own title line up to the next role's title line, so a role
+    # neither inherits the next role's heading nor the previous role's last bullet.
+    block_starts = [_role_block_start(experience_text, m_start) for _, _, m_start, _ in ranges]
     for i, (s, e, _, m_end) in enumerate(ranges):
         role_intervals.append((s, e))
-        # role text = from the line containing this range up to the next range's line
-        role_start = experience_text.rfind("\n", 0, ranges[i][2]) + 1
-        prev_line_start = experience_text.rfind("\n", 0, max(role_start - 1, 0)) + 1  # title line above dates
-        role_end = experience_text.rfind("\n", 0, ranges[i + 1][2]) if i + 1 < len(ranges) else len(experience_text)
-        role_text = experience_text[prev_line_start:max(role_end, m_end)]
+        role_end = block_starts[i + 1] if i + 1 < len(ranges) else len(experience_text)
+        role_text = experience_text[block_starts[i]:max(role_end, m_end)]
         role_skills = set(extract_skills(role_text))
         role_skills |= {SKILL_IMPLIES[k] for k in role_skills if k in SKILL_IMPLIES}
         for skill in role_skills:
@@ -264,8 +312,8 @@ def extract_experience(experience_text: str, full_text: str) -> tuple[float, dic
 
 EDUCATION_LEVELS = [  # (level, rank, pattern) - highest first
     ("PhD", 4, r"\b(ph\.?\s?d|doctorate|doctor of philosophy)(?![a-z])"),
-    ("Master", 3, r"\b(master'?s?|m\.?\s?sc?\.?|m\.?tech|m\.e\.|mba|m\.a\.)(?![a-z])"),
-    ("Bachelor", 2, r"\b(bachelor'?s?|b\.?\s?sc?\.?|b\.?tech|b\.e\.|b\.a\.|undergraduate)(?![a-z])"),
+    ("Master", 3, r"\b(master'?s?|m\.?\s?sc?\.?|m\.?tech|m\.e\.|m\.?eng\.?|mba|m\.a\.)(?![a-z])"),
+    ("Bachelor", 2, r"\b(bachelor'?s?|b\.?\s?sc?\.?|b\.?tech|b\.e\.|b\.?eng\.?|b\.a\.|undergraduate)(?![a-z])"),
     ("Associate", 1, r"\b(associate'?s? degree|diploma)(?![a-z])"),
 ]
 
@@ -280,15 +328,26 @@ def extract_education(education_text: str) -> tuple[str, str, int]:
     return "Unknown", (lines[0] if lines else ""), 0
 
 
+def _tidy_name(raw: str) -> str:
+    """Normalise a name lifted from a resume header.
+
+    Plain-text resumes often set the name in capitals ("DAVID KIM"); title-casing it
+    keeps output and reporting readable. Mixed-case names are left untouched so
+    "McDonald" or "de Souza" survive.
+    """
+    name = " ".join(raw.split())
+    return name.title() if name and name == name.upper() else name
+
+
 def extract_name(header_text: str, path: Path) -> str:
     """Name from a 'Name:' field, else the first short line of the header, else the file name."""
     m = re.search(r"^\s*name\s*[:\-]\s*(.+)$", header_text, re.IGNORECASE | re.MULTILINE)
     if m:
-        return m.group(1).strip()
+        return _tidy_name(m.group(1))
     for line in header_text.splitlines():
         line = re.sub(r"^[#*\s]+|[*\s]+$", "", line)
         if line and len(line.split()) <= 5 and not re.search(r"[@\d|]", line):
-            return line
+            return _tidy_name(line)
     return path.stem.replace("_", " ").title()
 
 
@@ -319,7 +378,8 @@ class ResumeRecord:
     chunks: list[Chunk] = field(default_factory=list)
 
 
-def process_resume(path: Path, text: str, display_path: str | None = None, max_chars: int = 900) -> ResumeRecord:
+def process_resume(path: Path, text: str, display_path: str | None = None, max_chars: int = 900,
+                   today: date | None = None) -> ResumeRecord:
     """Parse one resume into metadata + section-aware chunks.
 
     `display_path` is the sandbox-relative path Milestone 1's tools reported (e.g.
@@ -332,22 +392,29 @@ def process_resume(path: Path, text: str, display_path: str | None = None, max_c
         by_name[name] = f"{by_name[name]}\n\n{body}" if name in by_name else body
 
     name = extract_name(by_name.get("header", text[:300]), path)
-    total_years, skill_years = extract_experience(by_name.get("experience", ""), text)
+    skill_text = professional_text(by_name, text)
+    total_years, skill_years = extract_experience(by_name.get("experience", ""), skill_text, today=today)
     level, edu_line, rank = extract_education(by_name.get("education", ""))
     rel_path = display_path or f"{path.parent.name}/{path.name}"
     candidate_id = hashlib.sha1(rel_path.encode()).hexdigest()[:12]
 
+    # The header is contact details only, so it is not embedded - the name is kept as
+    # metadata instead. A resume with no recognisable headings has nothing but a header,
+    # though, and would be indexed with zero chunks and be invisible to semantic search;
+    # such a resume is embedded whole as one "summary" section.
+    body_sections = [(name, body) for name, body in sections if name != "header"]
+    if not body_sections:
+        body_sections = [("summary", text.strip())]
+
     chunks: list[Chunk] = []
-    for section, body in sections:
-        if section == "header":
-            continue  # contact details only; name is kept as metadata
+    for section, body in body_sections:
         for piece in chunk_section(section, body, max_chars=max_chars):
             idx = len(chunks)
             chunks.append(Chunk(id=f"{candidate_id}-{idx}", text=piece, section=section, chunk_index=idx))
 
     return ResumeRecord(
         candidate_id=candidate_id, candidate_name=name, resume_path=rel_path,
-        skills=extract_skills(text), experience_years=total_years, skill_years=skill_years,
+        skills=extract_skills(skill_text), experience_years=total_years, skill_years=skill_years,
         education_level=level, education=edu_line, education_rank=rank,
         sections={k: v for k, v in by_name.items() if k != "header"}, full_text=text, chunks=chunks,
     )
@@ -416,49 +483,98 @@ def chunk_metadata(record: ResumeRecord, chunk: Chunk) -> dict:
     }
 
 
+@dataclass(frozen=True)
+class BuildReport:
+    """What one index build produced, including how long each phase took.
+
+    The timings come from the real build rather than a re-implementation of it, so the
+    latency figures in the notebook describe the code that actually runs.
+    """
+
+    records: list[ResumeRecord]
+    skipped: list
+    timings: dict[str, float]          # seconds: load, parse, embed, store, total
+    model: str
+    backend: str                       # "sentence-transformers" or "onnx (chromadb)"
+
+    @property
+    def chunk_count(self) -> int:
+        return sum(len(record.chunks) for record in self.records)
+
+
 def build_index(resume_dir: str | Path, db_path: str | Path, model_name: str = DEFAULT_MODEL,
-                reset: bool = False, max_chars: int = 900) -> list[ResumeRecord]:
-    """Load, chunk, embed and store every resume in `resume_dir`."""
+                reset: bool = False, max_chars: int = 900, today: date | None = None) -> BuildReport:
+    """Load, chunk, embed and store every resume in `resume_dir`.
+
+    `today` pins the reference date that open-ended roles ("Jan 2021 - Present") are
+    measured against. Leaving it unset uses the real date, which is right in production
+    but means experience years - and therefore any metric computed from them - drift as
+    time passes. The evaluation pins it so results stay reproducible.
+    """
     resume_dir, db_path = Path(resume_dir), Path(db_path)
     for problem in verify_vendored_tools():
         print(f"[resume_rag] warning: {problem}", file=sys.stderr)
 
+    timings: dict[str, float] = {}
+    started = time.perf_counter()
+
+    phase = time.perf_counter()
     loaded, skipped = load_resumes(resume_dir)
+    timings["load"] = time.perf_counter() - phase
     for skip in skipped:
         print(f"[resume_rag] skipped {skip.display_path}: {skip.reason}", file=sys.stderr)
     for doc in loaded:
         if doc.warning:
             print(f"[resume_rag] warning for {doc.display_path}: {doc.warning}", file=sys.stderr)
-    records = [process_resume(d.path, d.text, display_path=d.display_path, max_chars=max_chars) for d in loaded]
+
+    phase = time.perf_counter()
+    records = [process_resume(d.path, d.text, display_path=d.display_path, max_chars=max_chars, today=today)
+               for d in loaded]
+    timings["parse"] = time.perf_counter() - phase
     if not records:
         raise SystemExit(f"No readable resumes found in {resume_dir}")
 
+    phase = time.perf_counter()
     embedder = Embedder(model_name)
+    timings["model_load"] = time.perf_counter() - phase
     collection = get_collection(db_path, reset=reset)
+    timings["embed"] = 0.0
+    timings["store"] = 0.0
     for record in records:
         # drop stale chunks for this candidate before re-adding (idempotent re-index)
         collection.delete(where={"candidate_id": record.candidate_id})
         # the embedded text carries the section label so "Education: ..." and "Experience: ..." stay distinct
         docs = [f"{c.section.title()}: {c.text}" for c in record.chunks]
+        phase = time.perf_counter()
+        embeddings = embedder.embed(docs)
+        timings["embed"] += time.perf_counter() - phase
+        phase = time.perf_counter()
         collection.add(
             ids=[c.id for c in record.chunks],
             documents=[c.text for c in record.chunks],
-            embeddings=embedder.embed(docs),
+            embeddings=embeddings,
             metadatas=[chunk_metadata(record, c) for c in record.chunks],
         )
+        timings["store"] += time.perf_counter() - phase
 
+    timings["total"] = time.perf_counter() - started
     registry = {
         "model": model_name,
         "indexed_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "resume_dir": str(resume_dir),
         "chunk_max_chars": max_chars,
+        "as_of": today.isoformat() if today else None,
         "loader": "milestone1 fs_tools",
+        "embedding_backend": embedder.backend,
         "skipped": [{"resume_path": s.display_path, "reason": s.reason} for s in skipped],
+        "timings_seconds": {k: round(v, 4) for k, v in timings.items()},
+        "chunk_count": sum(len(r.chunks) for r in records),
         "candidates": [{k: v for k, v in asdict(r).items() if k != "chunks"} for r in records],
     }
     db_path.mkdir(parents=True, exist_ok=True)
     (db_path / REGISTRY_FILE).write_text(json.dumps(registry, indent=2))
-    return records
+    return BuildReport(records=records, skipped=skipped, timings=timings,
+                       model=model_name, backend=embedder.backend)
 
 
 def main() -> None:
@@ -468,11 +584,30 @@ def main() -> None:
     parser.add_argument("--model", default=DEFAULT_MODEL, help="sentence-transformers model name")
     parser.add_argument("--max-chars", type=int, default=900, help="Max characters per chunk")
     parser.add_argument("--reset", action="store_true", help="Drop the collection before indexing")
+    parser.add_argument("--as-of", help="Reference date (YYYY-MM-DD) for open-ended roles such as "
+                                        '"Jan 2021 - Present"; defaults to today. Pin it for reproducible '
+                                        "experience years.")
     args = parser.parse_args()
 
-    records = build_index(args.resumes, args.db, args.model, args.reset, args.max_chars)
-    total_chunks = sum(len(r.chunks) for r in records)
-    print(f"Indexed {len(records)} resumes / {total_chunks} chunks into {args.db} ({args.model})\n")
+    as_of = None
+    if args.as_of:
+        try:
+            as_of = date.fromisoformat(args.as_of)
+        except ValueError:
+            parser.error(f"--as-of must be an ISO date such as 2026-10-18, got {args.as_of!r}")
+
+    report = build_index(args.resumes, args.db, args.model, args.reset, args.max_chars, today=as_of)
+    records = report.records
+    timings = report.timings
+    print(f"Indexed {len(records)} resumes / {report.chunk_count} chunks into {args.db} "
+          f"({args.model} via {report.backend}) in {timings['total']:.1f}s")
+    print(f"  load {timings['load']:.2f}s | parse {timings['parse']:.2f}s | "
+          f"model load {timings['model_load']:.2f}s | embed {timings['embed']:.2f}s | "
+          f"store {timings['store']:.2f}s | "
+          f"{1000 * timings['total'] / max(len(records), 1):.0f} ms/resume")
+    if report.skipped:
+        print(f"  skipped {len(report.skipped)} file(s)")
+    print()
     for r in records:
         print(f"- {r.candidate_name:<20} {r.experience_years:>4} yrs  {r.education_level:<9} "
               f"chunks={len(r.chunks):<2} skills={', '.join(r.skills[:8])}{' ...' if len(r.skills) > 8 else ''}")
