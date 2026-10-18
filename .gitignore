@@ -12,3 +12,4 @@ htmlcov/
 demo/frames/
 demo/scenes.txt
 demo/_*
+demo/_session.json

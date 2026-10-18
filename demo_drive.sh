@@ -81,8 +81,10 @@ print()
 for m in d["top_matches"]:
     print(f"  {m['match_score']:>3}  {m['candidate_name']:<16} {m['score_breakdown']}")
 print()
+import textwrap
 print("reasoning for the top match:")
-print(" ", d["top_matches"][0]["reasoning"][:300])
+for line in textwrap.wrap(d["top_matches"][0]["reasoning"], 120)[:4]:
+    print(" ", line)
 PY
 pause 17
 
