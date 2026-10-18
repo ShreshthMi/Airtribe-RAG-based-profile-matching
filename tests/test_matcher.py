@@ -166,3 +166,18 @@ def test_a_long_job_description_is_split_into_passages_rather_than_truncated(tin
     passages = tiny_matcher._jd_passages(TINY_ML_JD * 20)
     assert len(passages) > 1
     assert all(len(passage) <= 700 for passage in passages)
+
+
+def test_the_jds_skills_are_extracted_once_not_once_per_candidate(tiny_matcher, monkeypatch):
+    """Recomputing ~80 regex patterns per candidate made scoring two thirds of query time."""
+    calls = []
+    original = job_matcher.extract_skills
+
+    def counting(text):
+        calls.append(text)
+        return original(text)
+
+    monkeypatch.setattr(job_matcher, "extract_skills", counting)
+    tiny_matcher.match(TINY_ML_JD, k=4, auto_requirements=False)
+    jd_calls = [text for text in calls if text == TINY_ML_JD]
+    assert len(jd_calls) <= 2, f"the whole JD was re-scanned {len(jd_calls)} times"

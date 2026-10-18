@@ -22,6 +22,7 @@ import json
 import re
 import sys
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field, asdict
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -111,6 +112,28 @@ def chunk_section(section: str, body: str, max_chars: int = 900, overlap_lines: 
     if current:
         chunks.append(current)
     return chunks
+
+
+def section_aware_chunks(sections: list[tuple[str, str]], full_text: str,
+                         max_chars: int = 900) -> list[tuple[str, str]]:
+    """Default chunking: chunk within a section, never across one.
+
+    Returns (section_label, chunk_text) pairs. This is the seam the chunking ablation
+    in the notebook swaps out, so alternative strategies - a fixed window over the whole
+    document, or one chunk per resume - are measured against the same pipeline rather
+    than a re-implementation of it.
+
+    The header is contact details only, so it is not embedded; the name is kept as
+    metadata instead. A resume with no recognisable headings has nothing but a header,
+    though, and would be indexed with zero chunks and be invisible to semantic search,
+    so such a resume is embedded whole as one "summary" section.
+    """
+    body_sections = [(name, body) for name, body in sections if name != "header"]
+    if not body_sections:
+        body_sections = [("summary", full_text.strip())]
+    return [(name, piece)
+            for name, body in body_sections
+            for piece in chunk_section(name, body, max_chars=max_chars)]
 
 
 # --------------------------------------------------------------------------- #
@@ -274,10 +297,15 @@ def extract_experience(experience_text: str, full_text: str,
                        today: date | None = None) -> tuple[float, dict[str, float]]:
     """Total years of experience and years per skill.
 
-    Each date range in the Experience section starts a role; the role's text runs
-    until the next date range. Skills mentioned in a role inherit its duration.
-    Explicit statements like "6 years of Python" or "8+ years of experience" are
-    used when they give a higher number.
+    Each date range in the Experience section marks a role. A role spans its own title
+    line up to the next role's title line (see `_role_block_start`), and the skills named
+    inside that span inherit its duration - so a skill is never credited with time from
+    the role before or after it. Overlapping roles are merged rather than summed, and
+    career gaps are not bridged. Explicit statements like "6 years of Python" or
+    "8+ years of experience" can raise a figure but never lower it.
+
+    `today` is the reference date for open-ended roles ("Jan 2021 - Present"); without it
+    these figures grow with the calendar.
     """
     ranges = find_date_ranges(experience_text, today=today)
     role_intervals: list[tuple[int, int]] = []
@@ -354,6 +382,10 @@ def extract_name(header_text: str, path: Path) -> str:
 # --------------------------------------------------------------------------- #
 # Data model
 # --------------------------------------------------------------------------- #
+# A chunking strategy: (sections, full_text, max_chars) -> [(section_label, chunk_text)]
+Chunker = Callable[[list[tuple[str, str]], str, int], list[tuple[str, str]]]
+
+
 @dataclass
 class Chunk:
     id: str
@@ -379,7 +411,7 @@ class ResumeRecord:
 
 
 def process_resume(path: Path, text: str, display_path: str | None = None, max_chars: int = 900,
-                   today: date | None = None) -> ResumeRecord:
+                   today: date | None = None, chunker: Chunker = section_aware_chunks) -> ResumeRecord:
     """Parse one resume into metadata + section-aware chunks.
 
     `display_path` is the sandbox-relative path Milestone 1's tools reported (e.g.
@@ -398,19 +430,8 @@ def process_resume(path: Path, text: str, display_path: str | None = None, max_c
     rel_path = display_path or f"{path.parent.name}/{path.name}"
     candidate_id = hashlib.sha1(rel_path.encode()).hexdigest()[:12]
 
-    # The header is contact details only, so it is not embedded - the name is kept as
-    # metadata instead. A resume with no recognisable headings has nothing but a header,
-    # though, and would be indexed with zero chunks and be invisible to semantic search;
-    # such a resume is embedded whole as one "summary" section.
-    body_sections = [(name, body) for name, body in sections if name != "header"]
-    if not body_sections:
-        body_sections = [("summary", text.strip())]
-
-    chunks: list[Chunk] = []
-    for section, body in body_sections:
-        for piece in chunk_section(section, body, max_chars=max_chars):
-            idx = len(chunks)
-            chunks.append(Chunk(id=f"{candidate_id}-{idx}", text=piece, section=section, chunk_index=idx))
+    chunks = [Chunk(id=f"{candidate_id}-{index}", text=piece, section=section, chunk_index=index)
+              for index, (section, piece) in enumerate(chunker(sections, text, max_chars))]
 
     return ResumeRecord(
         candidate_id=candidate_id, candidate_name=name, resume_path=rel_path,
@@ -503,7 +524,8 @@ class BuildReport:
 
 
 def build_index(resume_dir: str | Path, db_path: str | Path, model_name: str = DEFAULT_MODEL,
-                reset: bool = False, max_chars: int = 900, today: date | None = None) -> BuildReport:
+                reset: bool = False, max_chars: int = 900, today: date | None = None,
+                chunker: Chunker = section_aware_chunks) -> BuildReport:
     """Load, chunk, embed and store every resume in `resume_dir`.
 
     `today` pins the reference date that open-ended roles ("Jan 2021 - Present") are
@@ -528,7 +550,8 @@ def build_index(resume_dir: str | Path, db_path: str | Path, model_name: str = D
             print(f"[resume_rag] warning for {doc.display_path}: {doc.warning}", file=sys.stderr)
 
     phase = time.perf_counter()
-    records = [process_resume(d.path, d.text, display_path=d.display_path, max_chars=max_chars, today=today)
+    records = [process_resume(d.path, d.text, display_path=d.display_path, max_chars=max_chars,
+                              today=today, chunker=chunker)
                for d in loaded]
     timings["parse"] = time.perf_counter() - phase
     if not records:
@@ -563,6 +586,7 @@ def build_index(resume_dir: str | Path, db_path: str | Path, model_name: str = D
         "indexed_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "resume_dir": str(resume_dir),
         "chunk_max_chars": max_chars,
+        "chunker": chunker.__name__,
         "as_of": today.isoformat() if today else None,
         "loader": "milestone1 fs_tools",
         "embedding_backend": embedder.backend,

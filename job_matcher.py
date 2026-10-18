@@ -309,6 +309,9 @@ class JobMatcher:
 
         sem_hits = self.semantic_search(jd)
         kw = self.keyword_scores(jd)
+        # Hoisted out of the per-candidate loop: this runs ~80 compiled patterns over the
+        # JD, and recomputing it per candidate made scoring two thirds of query latency.
+        jd_skills = extract_skills(jd)
 
         results, filtered_out = [], []
         for cid, cand in self.candidates.items():
@@ -335,7 +338,7 @@ class JobMatcher:
             section_sims: dict[str, float] = {}
             for h in hits:
                 section_sims[h["section"]] = max(section_sims.get(h["section"], 0.0), h["similarity"])
-            all_matched = [s for s in extract_skills(jd) if s in cand["skills"]]
+            all_matched = [s for s in jd_skills if s in cand["skills"]]
             results.append({
                 "candidate_name": cand["candidate_name"],
                 "resume_path": cand["resume_path"],
