@@ -224,6 +224,12 @@ encodes them with ffmpeg. No frame contains hand-typed results, so the video can
 from the code the way a recorded take can, and `make video` regenerates it after any
 change. There is no voice track; every frame carries its own caption.
 
+If a literal screen recording is wanted instead, `make screencast` produces one:
+`./demo_drive.sh auto` runs the same beats at a readable pace while `screencapture` records
+the display, and the notebook's chart cards are appended. It needs macOS Screen Recording
+permission for your terminal (the script checks, and says how to grant it), and it records
+the whole display, so close anything private and turn on Do Not Disturb first.
+
 ## Setup
 
 Python 3.12 with [uv](https://docs.astral.sh/uv/). 3.12 rather than 3.14 because

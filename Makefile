@@ -16,7 +16,7 @@ AS_OF   := 2026-10-18
 RESUMES := resumes
 DB      := chroma_db
 
-.PHONY: all setup install index match test test-all notebook video clean clean-index
+.PHONY: all setup install index match test test-all notebook video screencast clean clean-index
 
 all: index match test notebook
 
@@ -59,6 +59,12 @@ notebook:
 # Run `make notebook` first if the charts are stale. Needs ffmpeg.
 video:
 	$(PYTHON) scripts/make_demo_video.py
+
+# Literal screen recording of the demo running, with the notebook's charts appended.
+# Needs macOS Screen Recording permission for your terminal app; the script checks and
+# tells you how to grant it. Records the WHOLE DISPLAY - see the warning in the script.
+screencast:
+	./scripts/record_demo.sh
 
 # Only ever removes generated artefacts, every path named explicitly.
 clean-index:

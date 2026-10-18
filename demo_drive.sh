@@ -3,6 +3,7 @@
 #
 #   ./demo_drive.sh prep     run this BEFORE recording: warms the model, builds the index
 #   ./demo_drive.sh          the take: press Enter to advance through each beat
+#   ./demo_drive.sh auto     the take, self-paced, for an unattended screen recording
 #
 # Every command shown is the real one from the README. Nothing is faked; the only
 # cosmetic change is filtering the HuggingFace/torch startup warnings so the output
@@ -20,8 +21,22 @@ beat() {                       # beat "<timestamp>" "<title>" "<narration cue>"
   printf '\n%s%s  %s %s%s\n' "$bold" "$1" "$2" "$reset" ""
   printf '%s   cue: %s%s\n\n' "$dim" "$3" "$reset"
 }
-pause() { printf '\n%s   [Enter to continue]%s' "$dim" "$reset"; read -r _; clear; }
+AUTO=${AUTO:-0}
+# Seconds to hold each beat in auto mode: long enough to read the caption and the
+# output beneath it, short enough to keep the whole take inside four minutes.
+pause() {
+  if [ "$AUTO" = "1" ]; then
+    sleep "${1:-12}"
+  else
+    printf '\n%s   [Enter to continue]%s' "$dim" "$reset"; read -r _
+  fi
+  clear
+}
 show()  { printf '%s$ %s%s\n\n' "$bold" "$1" "$reset"; }
+
+if [ "${1:-}" = "auto" ]; then
+  AUTO=1
+fi
 
 if [ "${1:-}" = "prep" ]; then
   echo "Pre-flight: building the index so the 12s model load does not land mid-take."
@@ -41,7 +56,7 @@ show "ls && git log --oneline -5"
 ls
 echo
 git log --oneline -5
-pause
+pause 10
 
 beat "0:25-1:05" "Part A: indexing" \
   "43 resumes, 4 formats, loaded through fs_tools. Section-aware chunking. Skills, years, years-per-skill, degree."
@@ -49,7 +64,7 @@ show "python resume_rag.py --resumes resumes --db chroma_db --reset --as-of 2026
 $PY resume_rag.py --resumes resumes --db chroma_db --reset --as-of 2026-10-18 2>&1 \
   | eval $QUIET | head -14
 echo "  ... (43 candidates total)"
-pause
+pause 15
 
 beat "1:05-1:45" "Part B: matching" \
   "JD embedded and split into passages. Score = 50% semantic, 30% required-skill coverage, then BM25 and experience."
@@ -69,10 +84,10 @@ print()
 print("reasoning for the top match:")
 print(" ", d["top_matches"][0]["reasoning"][:300])
 PY
-pause
+pause 17
 
 beat "1:45-2:15" "Rejections are explainable" \
-  "Six fail the 5+ years Python rule the system extracted itself. This one scores 84 on text and still fails - his Python spans one role."
+  "27 of 43 fail the 5+ years Python rule the system extracted itself. The top one scores 84 on text and still fails - his Python spans a single role."
 show "jq '.filtered_out[:4]' outputs/senior_ml_engineer.json"
 $PY -c "
 import json
@@ -81,7 +96,7 @@ print(f'{len(d[\"filtered_out\"])} of 43 filtered out. Highest-scoring rejection
 for f in d['filtered_out'][:4]:
     print(f\"  {f['match_score']:>3}  {f['candidate_name']:<16} {f['failed_requirements'][0]}\")
 "
-pause
+pause 14
 
 beat "2:15-2:35" "Stating a requirement the JD left implicit" \
   "That JD names Java but never attaches a number. I state it myself."
@@ -95,13 +110,13 @@ print('fields returned:', ', '.join(d['top_matches'][0].keys()))
 print()
 for m in d['top_matches'][:4]: print(f\"  {m['match_score']:>3}  {m['candidate_name']}\")
 "
-pause
+pause 13
 
 beat "2:35-2:50" "Tests" \
   "177 tests, 94% coverage. Integration tests use a fake embedder so they run in under a second."
 show 'python -m pytest -m "not slow" -q'
 $PY -m pytest -m "not slow" -q 2>&1 | tail -3
-pause
+pause 10
 
 beat "2:50-3:40" "Evaluation - switch to the notebook" \
   "MRR 1.00, recall@10 0.98, nDCG@5 0.972 - then say plainly that a no-semantic blend ties it, and go to 7d for the paraphrased queries where the dense half is worth +0.091. Then section 9, the one miss, and section 10, limitations."
@@ -114,7 +129,7 @@ cat <<'TXT'
     section 9  - the single missed candidate
     section 10 - limitations
 TXT
-pause
+pause 13
 
 beat "3:40-4:00" "Close" "Everything reproduces with make all."
 show "make all"
