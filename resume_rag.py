@@ -2,7 +2,7 @@
 Part A: RAG system setup for resumes.
 
 Pipeline
-  1. Load resumes with the file-system tools (file_tools.py).
+  1. Load resumes with the Milestone 1 file-system tools (resume_loader.py -> fs_tools).
   2. Split each resume into sections (Summary, Skills, Experience, Education, ...)
      and chunk inside a section only, so a chunk never mixes Education with Experience.
   3. Extract metadata: name, skills, total experience years, per-skill years, education.
@@ -20,11 +20,12 @@ import argparse
 import hashlib
 import json
 import re
+import sys
 from dataclasses import dataclass, field, asdict
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
 
-from file_tools import iter_documents, relative_path
+from resume_loader import load_resumes, verify_vendored_tools
 
 DEFAULT_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 COLLECTION_NAME = "resume_chunks"
@@ -318,8 +319,13 @@ class ResumeRecord:
     chunks: list[Chunk] = field(default_factory=list)
 
 
-def process_resume(path: Path, text: str, base_dir: Path | None = None, max_chars: int = 900) -> ResumeRecord:
-    """Parse one resume into metadata + section-aware chunks."""
+def process_resume(path: Path, text: str, display_path: str | None = None, max_chars: int = 900) -> ResumeRecord:
+    """Parse one resume into metadata + section-aware chunks.
+
+    `display_path` is the sandbox-relative path Milestone 1's tools reported (e.g.
+    "resumes/priya_sharma.md"); it is stored as `resume_path` and hashed into the
+    candidate id, so candidates are keyed by file, never by name.
+    """
     sections = split_sections(text)
     by_name: dict[str, str] = {}
     for name, body in sections:
@@ -328,7 +334,7 @@ def process_resume(path: Path, text: str, base_dir: Path | None = None, max_char
     name = extract_name(by_name.get("header", text[:300]), path)
     total_years, skill_years = extract_experience(by_name.get("experience", ""), text)
     level, edu_line, rank = extract_education(by_name.get("education", ""))
-    rel_path = relative_path(path, base_dir)
+    rel_path = display_path or f"{path.parent.name}/{path.name}"
     candidate_id = hashlib.sha1(rel_path.encode()).hexdigest()[:12]
 
     chunks: list[Chunk] = []
@@ -414,9 +420,18 @@ def build_index(resume_dir: str | Path, db_path: str | Path, model_name: str = D
                 reset: bool = False, max_chars: int = 900) -> list[ResumeRecord]:
     """Load, chunk, embed and store every resume in `resume_dir`."""
     resume_dir, db_path = Path(resume_dir), Path(db_path)
-    records = [process_resume(p, t, base_dir=resume_dir.parent, max_chars=max_chars) for p, t in iter_documents(resume_dir)]
+    for problem in verify_vendored_tools():
+        print(f"[resume_rag] warning: {problem}", file=sys.stderr)
+
+    loaded, skipped = load_resumes(resume_dir)
+    for skip in skipped:
+        print(f"[resume_rag] skipped {skip.display_path}: {skip.reason}", file=sys.stderr)
+    for doc in loaded:
+        if doc.warning:
+            print(f"[resume_rag] warning for {doc.display_path}: {doc.warning}", file=sys.stderr)
+    records = [process_resume(d.path, d.text, display_path=d.display_path, max_chars=max_chars) for d in loaded]
     if not records:
-        raise SystemExit(f"No resumes found in {resume_dir}")
+        raise SystemExit(f"No readable resumes found in {resume_dir}")
 
     embedder = Embedder(model_name)
     collection = get_collection(db_path, reset=reset)
@@ -434,6 +449,11 @@ def build_index(resume_dir: str | Path, db_path: str | Path, model_name: str = D
 
     registry = {
         "model": model_name,
+        "indexed_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "resume_dir": str(resume_dir),
+        "chunk_max_chars": max_chars,
+        "loader": "milestone1 fs_tools",
+        "skipped": [{"resume_path": s.display_path, "reason": s.reason} for s in skipped],
         "candidates": [{k: v for k, v in asdict(r).items() if k != "chunks"} for r in records],
     }
     db_path.mkdir(parents=True, exist_ok=True)

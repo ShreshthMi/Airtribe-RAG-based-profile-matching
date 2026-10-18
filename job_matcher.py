@@ -18,18 +18,46 @@ from __future__ import annotations
 import argparse
 import json
 import re
-from dataclasses import dataclass
+import sys
+from dataclasses import dataclass, asdict
 from pathlib import Path
 
 from rank_bm25 import BM25Okapi
 
+from resume_loader import LoaderError, load_text_file
 from resume_rag import (
     COLLECTION_NAME, DEFAULT_MODEL, EDUCATION_LEVELS, REGISTRY_FILE, Embedder,
     extract_skills, split_sections,
 )
 
-# Score weights (sum to 1.0)
-W_SEMANTIC, W_SKILLS, W_KEYWORD, W_EXPERIENCE = 0.50, 0.30, 0.10, 0.10
+
+class MatcherError(Exception):
+    """The index is missing or unusable, or the job description is empty."""
+
+
+@dataclass(frozen=True)
+class ScoreWeights:
+    """Relative weight of each scoring component; must sum to 1.
+
+    Injectable so the notebook can run semantic-only / BM25-only / skills-only
+    ablations against the same index instead of hard-coding one blend.
+    """
+
+    semantic: float = 0.50
+    critical_skills: float = 0.30
+    keyword_bm25: float = 0.10
+    experience_fit: float = 0.10
+
+    def __post_init__(self) -> None:
+        total = self.semantic + self.critical_skills + self.keyword_bm25 + self.experience_fit
+        if abs(total - 1.0) > 1e-6:
+            raise ValueError(f"score weights must sum to 1.0, got {total:g}")
+        for name, value in asdict(self).items():
+            if value < 0:
+                raise ValueError(f"score weight {name} must not be negative, got {value:g}")
+
+
+DEFAULT_WEIGHTS = ScoreWeights()
 # MiniLM cosine similarities for related resume/JD text typically fall in this band
 SIM_FLOOR, SIM_CEIL = 0.15, 0.65
 
@@ -132,10 +160,34 @@ class JobMatcher:
         import chromadb
 
         db_path = Path(db_path)
-        registry = json.loads((db_path / REGISTRY_FILE).read_text())
-        self.candidates: dict[str, dict] = {c["candidate_id"]: c for c in registry["candidates"]}
-        self.embedder = Embedder(model_name or registry.get("model", DEFAULT_MODEL))
-        self.collection = chromadb.PersistentClient(path=str(db_path)).get_collection(COLLECTION_NAME)
+        registry_path = db_path / REGISTRY_FILE
+        if not registry_path.is_file():
+            raise MatcherError(
+                f"No resume index found at {db_path} (missing {REGISTRY_FILE}). Build one first:\n"
+                f"  python resume_rag.py --resumes resumes --db {db_path} --reset"
+            )
+        try:
+            registry = json.loads(registry_path.read_text())
+            candidates = registry["candidates"]
+        except (json.JSONDecodeError, KeyError, OSError) as exc:
+            raise MatcherError(f"Index registry {registry_path} is unreadable or malformed: {exc}") from exc
+        if not candidates:
+            raise MatcherError(f"Index at {db_path} contains no candidates; re-run resume_rag.py.")
+
+        self.candidates: dict[str, dict] = {c["candidate_id"]: c for c in candidates}
+        self.model_name = model_name or registry.get("model", DEFAULT_MODEL)
+        indexed_with = registry.get("model", DEFAULT_MODEL)
+        if self.model_name != indexed_with:
+            print(f"[job_matcher] warning: querying with {self.model_name} but the index was built with "
+                  f"{indexed_with}; similarities are not comparable across models.", file=sys.stderr)
+        self.embedder = Embedder(self.model_name)
+        try:
+            self.collection = chromadb.PersistentClient(path=str(db_path)).get_collection(COLLECTION_NAME)
+        except Exception as exc:  # chromadb raises assorted types for a missing collection
+            raise MatcherError(
+                f"ChromaDB collection '{COLLECTION_NAME}' not found in {db_path}: {exc}\n"
+                f"  python resume_rag.py --resumes resumes --db {db_path} --reset"
+            ) from exc
         self._ids = list(self.candidates)
         self._bm25 = BM25Okapi([tokenize(self.candidates[i]["full_text"]) for i in self._ids])
 
@@ -158,6 +210,8 @@ class JobMatcher:
         """Return candidate_id -> list of {text, section, similarity}, best similarity per chunk."""
         passages = self._jd_passages(jd)
         n = min(n_chunks, self.collection.count())
+        if n <= 0:  # an empty collection would make chromadb reject n_results=0
+            return {}
         res = self.collection.query(query_embeddings=self.embedder.embed(passages), n_results=n,
                                     include=["documents", "metadatas", "distances"])
         best: dict[str, dict] = {}
@@ -225,9 +279,20 @@ class JobMatcher:
         return " ".join(parts)
 
     def match(self, jd: str, k: int = 10, must_haves: list[str] | None = None, auto_requirements: bool = True,
-              critical_skills: list[str] | None = None, min_score: int = 0) -> dict:
+              critical_skills: list[str] | None = None, min_score: int = 0,
+              weights: ScoreWeights | None = None) -> dict:
+        if not jd or not jd.strip():
+            raise MatcherError("The job description is empty.")
+        weights = weights or DEFAULT_WEIGHTS
         critical = critical_skills or critical_skills_from_jd(jd)
-        requirements = [r for r in (parse_requirement(m) for m in (must_haves or [])) if r]
+        parsed = [(m, parse_requirement(m)) for m in (must_haves or [])]
+        requirements = [r for _, r in parsed if r]
+        # A must-have we cannot parse must never be dropped quietly: the caller would
+        # believe a filter was applied that never ran.
+        unparsed = [raw for raw, r in parsed if r is None]
+        for raw in unparsed:
+            print(f"[job_matcher] warning: could not interpret must-have {raw!r}; it was NOT applied. "
+                  f'Use forms like "5+ years Python", "Kubernetes" or "Master\'s degree".', file=sys.stderr)
         if auto_requirements:
             known = {(r.skill, r.min_years) for r in requirements}
             requirements += [r for r in extract_requirements_from_jd(jd) if (r.skill, r.min_years) not in known]
@@ -246,8 +311,9 @@ class JobMatcher:
             skill_cov = len(matched) / len(critical) if critical else 0.0
             target_years = total_years_req or any_years_req
             exp_fit = min(1.0, cand["experience_years"] / target_years) if target_years else 1.0
-            score = round(100 * (W_SEMANTIC * sem + W_SKILLS * skill_cov + W_KEYWORD * kw.get(cid, 0.0)
-                                 + W_EXPERIENCE * exp_fit))
+            score = round(100 * (weights.semantic * sem + weights.critical_skills * skill_cov
+                                 + weights.keyword_bm25 * kw.get(cid, 0.0)
+                                 + weights.experience_fit * exp_fit))
 
             checks = [(r, *r.check(cand)) for r in requirements]
             failed = [f"{r.raw} (has {note})" for r, ok, note in checks if not ok]
@@ -277,13 +343,17 @@ class JobMatcher:
                 "education": cand["education"],
             })
 
-        results.sort(key=lambda r: r["match_score"], reverse=True)
+        # Explicit tie-break on resume_path so equal scores rank identically on every
+        # run; reproducible ranking is a precondition for the retrieval metrics.
+        results.sort(key=lambda r: (-r["match_score"], r["resume_path"]))
         return {
             "job_description": jd,
             "critical_skills": critical,
             "must_have_requirements": [r.raw for r in requirements],
+            "unparsed_must_haves": unparsed,
+            "score_weights": asdict(weights),
             "top_matches": results[:k],
-            "filtered_out": sorted(filtered_out, key=lambda r: r["match_score"], reverse=True),
+            "filtered_out": sorted(filtered_out, key=lambda r: (-r["match_score"], r["resume_path"])),
         }
 
 
@@ -303,10 +373,19 @@ def main() -> None:
     parser.add_argument("--brief", action="store_true", help="Print only the fields from the assignment's output format")
     args = parser.parse_args()
 
-    jd = Path(args.jd_file).read_text() if args.jd_file else args.jd
-    result = JobMatcher(args.db).match(jd.strip(), k=args.k, must_haves=args.must_have,
-                                        auto_requirements=not args.no_auto_requirements,
-                                        critical_skills=args.critical_skill or None, min_score=args.min_score)
+    if args.k < 1:
+        parser.error("--k must be at least 1")
+    if not 0 <= args.min_score <= 100:
+        parser.error("--min-score must be between 0 and 100")
+    try:
+        # Job descriptions go through the same Milestone 1 reader as resumes, so a JD
+        # can be a .pdf or .docx just as easily as a .txt.
+        jd = load_text_file(args.jd_file) if args.jd_file else args.jd
+        result = JobMatcher(args.db).match(jd.strip(), k=args.k, must_haves=args.must_have,
+                                           auto_requirements=not args.no_auto_requirements,
+                                           critical_skills=args.critical_skill or None, min_score=args.min_score)
+    except (MatcherError, LoaderError) as exc:
+        parser.exit(2, f"error: {exc}\n")
     if args.brief:
         keep = ["candidate_name", "resume_path", "match_score", "matched_skills", "relevant_excerpts", "reasoning"]
         result = {"job_description": result["job_description"],
