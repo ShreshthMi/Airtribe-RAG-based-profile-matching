@@ -1,0 +1,12 @@
+Senior Backend Engineer (Payments)
+
+We need an engineer to build reliable, high-throughput distributed services.
+
+Must have
+- 6+ years of experience in backend development
+- Java and Spring Boot, microservices, REST APIs
+- Kafka and Redis
+- Kubernetes on AWS
+
+Preferred
+- Terraform, system design experience, Go

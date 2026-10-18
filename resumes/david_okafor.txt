@@ -1,0 +1,21 @@
+David Okafor
+david.okafor@example.com | London, UK
+
+SUMMARY
+Full-stack Python developer with 10 years of experience building SaaS products with Django and React.
+
+SKILLS
+Python, Django, FastAPI, Flask, PostgreSQL, Redis, Celery, React, JavaScript, Docker, AWS, REST APIs
+
+EXPERIENCE
+Lead Software Engineer, Deliveroo
+Jan 2019 - Present
+- Lead a team of 8 Python engineers building Django and FastAPI services on AWS.
+- Designed REST APIs and a React admin dashboard.
+
+Software Engineer, Sky
+Sep 2014 - Dec 2018
+- Built Python (Django, Flask) web apps, PostgreSQL and Redis caching.
+
+EDUCATION
+BSc in Computer Science, University of Manchester, 2014

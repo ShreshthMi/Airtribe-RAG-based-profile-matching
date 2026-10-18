@@ -1,0 +1,21 @@
+Li Wei
+li.wei@example.com | Singapore
+
+SUMMARY
+MLOps engineer with 5 years of experience operating ML platforms at scale.
+
+SKILLS
+Python, Kubernetes, Kubeflow, MLflow, Docker, Terraform, AWS, GCP, Airflow, Spark, CI/CD, Machine Learning
+
+EXPERIENCE
+Senior MLOps Engineer, Grab
+Apr 2022 - Present
+- Built a Kubeflow and MLflow based model platform on Kubernetes serving 300+ ML models.
+- Python SDK for feature store access; Airflow retraining pipelines.
+
+Machine Learning Platform Engineer, Shopee
+Mar 2020 - Mar 2022
+- Containerised training jobs with Docker; CI/CD for model deployment on GCP.
+
+EDUCATION
+M.Sc. in Computer Science, National University of Singapore, 2020

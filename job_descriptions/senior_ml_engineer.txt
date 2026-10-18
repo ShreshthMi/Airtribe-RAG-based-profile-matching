@@ -1,0 +1,16 @@
+Senior Machine Learning Engineer - GenAI Platform
+
+About the role
+We are building a retrieval-augmented generation platform that powers search and assistants for millions of users.
+You will design, train and deploy ML and LLM-based systems end to end.
+
+Requirements
+- 5+ years of Python experience building production systems
+- Strong background in machine learning and NLP; hands-on with PyTorch
+- Experience with LLMs, RAG and vector databases
+- Deploying models with Docker and Kubernetes on AWS
+
+Nice to have
+- MLOps tooling (MLflow, Kubeflow)
+- Spark for large-scale data processing
+- Experience leading a small team

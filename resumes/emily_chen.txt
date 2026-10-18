@@ -1,0 +1,21 @@
+Emily Chen
+emily.chen@example.com | New York, NY
+
+SUMMARY
+Frontend engineer, 5 years of experience building accessible web applications with React and TypeScript.
+
+SKILLS
+JavaScript, TypeScript, React, Next.js, Node.js, HTML, CSS, Tailwind, GraphQL, Jest, Figma, Git
+
+EXPERIENCE
+Senior Frontend Engineer, Etsy
+Jan 2022 - Present
+- Rebuilt checkout in React and TypeScript, improving conversion by 3%.
+- Built a GraphQL client layer and shared component library.
+
+Frontend Engineer, Squarespace
+Aug 2019 - Dec 2021
+- Built editor features in React; Node.js tooling for builds.
+
+EDUCATION
+B.S. in Computer Science, Cornell University, 2019

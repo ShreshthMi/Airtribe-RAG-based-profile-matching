@@ -1,0 +1,25 @@
+John Doe
+john.doe@example.com | San Francisco, CA
+
+PROFESSIONAL SUMMARY
+Machine learning engineer focused on deep learning and computer vision, 6 years of experience.
+
+TECHNICAL SKILLS
+Python, PyTorch, TensorFlow, Computer Vision (OpenCV), Deep Learning, NumPy, Docker, GCP (Vertex AI, BigQuery), Git, Linux
+
+WORK EXPERIENCE
+Machine Learning Engineer - Waymo
+Mar 2021 - Present
+- Trained PyTorch perception models for 3D object detection; reduced false positives by 18%.
+- Built Python data pipelines on GCP processing 50TB of sensor data per week.
+
+Computer Vision Engineer - Clarifai
+Jan 2019 - Feb 2021
+- Developed image recognition models with TensorFlow and deployed them with Docker.
+
+EDUCATION
+Master of Science in Electrical Engineering, Stanford University, 2018
+Bachelor of Science in Computer Engineering, UC San Diego, 2016
+
+PROJECTS
+Open-source contributor to Detectron2; built a real-time pose estimation demo.

@@ -1,0 +1,6 @@
+chromadb>=0.5
+rank-bm25>=0.2.2
+pypdf>=4.0
+python-docx>=1.1
+# optional: uses PyTorch; without it the same MiniLM model runs via ChromaDB's ONNX build
+sentence-transformers>=2.7

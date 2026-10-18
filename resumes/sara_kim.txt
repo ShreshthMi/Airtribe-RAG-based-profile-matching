@@ -1,0 +1,22 @@
+Name: Sara Kim
+sara.kim@example.com | Seattle, WA
+
+SUMMARY
+Data scientist with 4 years of experience in statistics, experimentation and machine learning for product analytics.
+
+SKILLS
+Python, R, SQL, Pandas, scikit-learn, Statistics, A/B testing, Tableau, Machine Learning, Snowflake, dbt
+
+EXPERIENCE
+Data Scientist, Zillow
+Jun 2022 - Present
+- Built gradient boosting models in Python (scikit-learn) to predict listing conversion.
+- Designed and analysed A/B tests; owned experimentation metrics in Snowflake and dbt.
+
+Data Analyst, Expedia
+Jul 2020 - May 2022
+- SQL dashboards in Tableau; statistical modeling of booking funnels in R.
+
+EDUCATION
+M.S. in Statistics, University of Washington, 2020
+B.A. in Mathematics, Wellesley College, 2018

@@ -1,0 +1,68 @@
+{
+  "job_description": "Senior Machine Learning Engineer - GenAI Platform\n\nAbout the role\nWe are building a retrieval-augmented generation platform that powers search and assistants for millions of users.\nYou will design, train and deploy ML and LLM-based systems end to end.\n\nRequirements\n- 5+ years of Python experience building production systems\n- Strong background in machine learning and NLP; hands-on with PyTorch\n- Experience with LLMs, RAG and vector databases\n- Deploying models with Docker and Kubernetes on AWS\n\nNice to have\n- MLOps tooling (MLflow, Kubeflow)\n- Spark for large-scale data processing\n- Experience leading a small team",
+  "top_matches": [
+    {
+      "candidate_name": "Priya Sharma",
+      "resume_path": "resumes/priya_sharma.md",
+      "match_score": 100,
+      "matched_skills": [
+        "Python",
+        "Machine Learning",
+        "NLP",
+        "LLMs",
+        "RAG",
+        "PyTorch",
+        "Spark",
+        "MLOps",
+        "Vector Databases",
+        "AWS",
+        "Docker",
+        "Kubernetes"
+      ],
+      "relevant_excerpts": [
+        "[Experience] Senior ML Engineer, Flipkart Jan 2021 - Present - Built a retrieval-augmented generation (RAG) assistant over 2M product documents using Python, LangChain and Pinecone. - Led a team of 5 engineers delivering a PyTorch two-tower recommendation model; +7% CTR. - Productionised mode...",
+        "[Summary] Senior Machine Learning Engineer with 8+ years of experience building production ML systems, recommendation engines and NLP pipelines. Comfortable owning models from research to deployment.",
+        "[Skills] Python, PyTorch, TensorFlow, scikit-learn, Pandas, NumPy, NLP, Hugging Face, LLMs, RAG, Vector Databases (Pinecone, FAISS), MLOps (MLflow, Kubeflow), Docker, Kubernetes, AWS (SageMaker, S3), SQL, Spark"
+      ],
+      "reasoning": "Strong match. Has 10/10 critical skills (Python, Machine Learning, NLP, PyTorch, LLMs, RAG, Vector Databases, AWS, Docker, Kubernetes). Closest sections to the JD: Experience (0.69), Summary (0.66). 11.4 years of experience (JD asks 5+); education: Master. Must-haves met: 5+ years Python (11.4 yrs Python)."
+    },
+    {
+      "candidate_name": "Vikram Iyer",
+      "resume_path": "resumes/vikram_iyer.md",
+      "match_score": 82,
+      "matched_skills": [
+        "Python",
+        "NLP",
+        "LLMs",
+        "RAG",
+        "PyTorch",
+        "Vector Databases",
+        "AWS",
+        "Docker"
+      ],
+      "relevant_excerpts": [
+        "[Skills] Python, PyTorch, NLP, LLMs, Hugging Face, RAG, LangChain, Vector Databases (FAISS, Weaviate), Deep Learning, AWS, Docker",
+        "[Experience] Applied Scientist, Amazon Sep 2020 - Present - Fine-tuned large language models in PyTorch for product question answering. - Built retrieval augmented generation pipelines with FAISS and Hugging Face; deployed on AWS SageMaker. Research Intern, Microsoft Research May 2019 - Aug 2...",
+        "[Summary] NLP researcher turned applied scientist; PhD in natural language processing with 5 years of industry experience on LLMs."
+      ],
+      "reasoning": "Strong match. Has 8/10 critical skills (Python, NLP, PyTorch, LLMs, RAG, Vector Databases, AWS, Docker); missing Machine Learning, Kubernetes. Closest sections to the JD: Skills (0.59), Experience (0.49). 6.5 years of experience (JD asks 5+); education: PhD. Must-haves met: 5+ years Python (6.5 yrs Python)."
+    },
+    {
+      "candidate_name": "Maria Garcia",
+      "resume_path": "resumes/maria_garcia.txt",
+      "match_score": 68,
+      "matched_skills": [
+        "Python",
+        "AWS",
+        "Docker",
+        "Kubernetes"
+      ],
+      "relevant_excerpts": [
+        "[Experience] Senior Platform Engineer, Dell Technologies Mar 2021 - Present - Run 40+ Kubernetes clusters with Terraform; built CI/CD with GitHub Actions. - Python automation for cost reporting across AWS and GCP. DevOps Engineer, Indeed Jan 2019 - Feb 2021 - Jenkins pipelines, Docker images,...",
+        "[Summary] DevOps / platform engineer with 6 years of experience automating cloud infrastructure.",
+        "[Skills] AWS, GCP, Kubernetes, Docker, Terraform, CI/CD (Jenkins, GitHub Actions), Linux, Bash, Python, Prometheus"
+      ],
+      "reasoning": "Good match. Has 4/10 critical skills (Python, AWS, Docker, Kubernetes); missing Machine Learning, NLP, PyTorch, LLMs, RAG, Vector Databases. Closest sections to the JD: Experience (0.58), Summary (0.57). 7.8 years of experience (JD asks 5+); education: Bachelor. Must-haves met: 5+ years Python (5.7 yrs Python)."
+    }
+  ]
+}

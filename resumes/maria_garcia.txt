@@ -1,0 +1,21 @@
+Maria Garcia
+maria.garcia@example.com | Austin, TX
+
+SUMMARY
+DevOps / platform engineer with 6 years of experience automating cloud infrastructure.
+
+SKILLS
+AWS, GCP, Kubernetes, Docker, Terraform, CI/CD (Jenkins, GitHub Actions), Linux, Bash, Python, Prometheus
+
+EXPERIENCE
+Senior Platform Engineer, Dell Technologies
+Mar 2021 - Present
+- Run 40+ Kubernetes clusters with Terraform; built CI/CD with GitHub Actions.
+- Python automation for cost reporting across AWS and GCP.
+
+DevOps Engineer, Indeed
+Jan 2019 - Feb 2021
+- Jenkins pipelines, Docker images, Linux fleet management.
+
+EDUCATION
+B.S. in Information Systems, UT Austin, 2018

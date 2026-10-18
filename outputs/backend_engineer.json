@@ -1,0 +1,147 @@
+{
+  "job_description": "Senior Backend Engineer (Payments)\n\nWe need an engineer to build reliable, high-throughput distributed services.\n\nMust have\n- 6+ years of experience in backend development\n- Java and Spring Boot, microservices, REST APIs\n- Kafka and Redis\n- Kubernetes on AWS\n\nPreferred\n- Terraform, system design experience, Go",
+  "critical_skills": [
+    "Java",
+    "Spring Boot",
+    "REST APIs",
+    "Microservices",
+    "Kafka",
+    "Redis",
+    "AWS",
+    "Kubernetes"
+  ],
+  "must_have_requirements": [
+    "5+ years Java",
+    "6+ years experience"
+  ],
+  "top_matches": [
+    {
+      "candidate_name": "Arjun Mehta",
+      "resume_path": "resumes/arjun_mehta.md",
+      "match_score": 100,
+      "matched_skills": [
+        "Java",
+        "Go",
+        "Kafka",
+        "AWS",
+        "Kubernetes",
+        "Terraform",
+        "Spring Boot",
+        "REST APIs",
+        "Microservices",
+        "Redis",
+        "System Design"
+      ],
+      "relevant_excerpts": [
+        "[Experience] Staff Software Engineer, Razorpay Apr 2020 - Present - Designed payment routing microservices in Java and Spring Boot handling 10k TPS. - Migrated services to Kubernetes on AWS (EKS) with Terraform; led a team of 6. Senior Software Engineer, Thoughtworks Aug 2016 - Mar 2020 - Bui...",
+        "[Skills] Java, Spring Boot, Golang, Microservices, Kafka, Redis, PostgreSQL, Docker, Kubernetes, AWS, Terraform, System Design, REST APIs",
+        "[Summary] Backend engineer with 9 years of experience designing high-throughput microservices in Java and Go."
+      ],
+      "reasoning": "Strong match. Has 8/8 critical skills (Java, Spring Boot, REST APIs, Microservices, Kafka, Redis, AWS, Kubernetes). Closest sections to the JD: Experience (0.71), Skills (0.65). 11.3 years of experience (JD asks 6+); education: Bachelor. Must-haves met: 5+ years Java (7.7 yrs Java); 6+ years experience (11.3 yrs total).",
+      "matched_sections": [
+        "experience",
+        "skills",
+        "summary"
+      ],
+      "score_breakdown": {
+        "semantic": 100,
+        "critical_skills": 100,
+        "keyword_bm25": 100,
+        "experience_fit": 100
+      },
+      "experience_years": 11.3,
+      "education": "B.E. in Computer Engineering, University of Pune, 2015"
+    }
+  ],
+  "filtered_out": [
+    {
+      "candidate_name": "David Okafor",
+      "resume_path": "resumes/david_okafor.txt",
+      "match_score": 66,
+      "failed_requirements": [
+        "5+ years Java (has 0 yrs Java)"
+      ]
+    },
+    {
+      "candidate_name": "Maria Garcia",
+      "resume_path": "resumes/maria_garcia.txt",
+      "match_score": 66,
+      "failed_requirements": [
+        "5+ years Java (has 0 yrs Java)"
+      ]
+    },
+    {
+      "candidate_name": "Li Wei",
+      "resume_path": "resumes/li_wei.txt",
+      "match_score": 59,
+      "failed_requirements": [
+        "5+ years Java (has 0 yrs Java)"
+      ]
+    },
+    {
+      "candidate_name": "Rahul Verma",
+      "resume_path": "resumes/rahul_verma.md",
+      "match_score": 56,
+      "failed_requirements": [
+        "5+ years Java (has 0 yrs Java)"
+      ]
+    },
+    {
+      "candidate_name": "Priya Sharma",
+      "resume_path": "resumes/priya_sharma.md",
+      "match_score": 47,
+      "failed_requirements": [
+        "5+ years Java (has 0 yrs Java)"
+      ]
+    },
+    {
+      "candidate_name": "Neha Gupta",
+      "resume_path": "resumes/neha_gupta.md",
+      "match_score": 41,
+      "failed_requirements": [
+        "5+ years Java (has 0.9 yrs Java)"
+      ]
+    },
+    {
+      "candidate_name": "Emily Chen",
+      "resume_path": "resumes/emily_chen.txt",
+      "match_score": 39,
+      "failed_requirements": [
+        "5+ years Java (has 0 yrs Java)"
+      ]
+    },
+    {
+      "candidate_name": "John Doe",
+      "resume_path": "resumes/john_doe.txt",
+      "match_score": 32,
+      "failed_requirements": [
+        "5+ years Java (has 0 yrs Java)"
+      ]
+    },
+    {
+      "candidate_name": "Vikram Iyer",
+      "resume_path": "resumes/vikram_iyer.md",
+      "match_score": 30,
+      "failed_requirements": [
+        "5+ years Java (has 0 yrs Java)"
+      ]
+    },
+    {
+      "candidate_name": "Aisha Khan",
+      "resume_path": "resumes/aisha_khan.md",
+      "match_score": 26,
+      "failed_requirements": [
+        "5+ years Java (has 0 yrs Java)",
+        "6+ years experience (has 3.8 yrs total)"
+      ]
+    },
+    {
+      "candidate_name": "Sara Kim",
+      "resume_path": "resumes/sara_kim.txt",
+      "match_score": 25,
+      "failed_requirements": [
+        "5+ years Java (has 0 yrs Java)"
+      ]
+    }
+  ]
+}

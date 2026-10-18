@@ -1,0 +1,321 @@
+"""
+Part B: Job matching engine.
+
+Given a job description (JD):
+  1. Embed the JD (split into passages so long JDs aren't truncated by the model).
+  2. Semantic search: retrieve similar resume chunks from ChromaDB and aggregate per candidate.
+  3. Keyword search: BM25 over full resume text + exact matching of critical skills.
+  4. Hybrid score (0-100) = semantic + critical-skill coverage + BM25 + experience fit.
+  5. Filter by must-have requirements (e.g. "5+ years Python", "Kubernetes", "Master's degree").
+  6. Return the top-K (default 10) with matched skills, excerpts and reasoning.
+
+Usage
+  python job_matcher.py --jd-file jds/senior_ml_engineer.txt
+  python job_matcher.py --jd "Senior Python developer ..." --must-have "5+ years Python" --k 10 --output out.json
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import re
+from dataclasses import dataclass
+from pathlib import Path
+
+from rank_bm25 import BM25Okapi
+
+from resume_rag import (
+    COLLECTION_NAME, DEFAULT_MODEL, EDUCATION_LEVELS, REGISTRY_FILE, Embedder,
+    extract_skills, split_sections,
+)
+
+# Score weights (sum to 1.0)
+W_SEMANTIC, W_SKILLS, W_KEYWORD, W_EXPERIENCE = 0.50, 0.30, 0.10, 0.10
+# MiniLM cosine similarities for related resume/JD text typically fall in this band
+SIM_FLOOR, SIM_CEIL = 0.15, 0.65
+
+_TOKEN_RE = re.compile(r"[a-z0-9+#.]+")
+_STOPWORDS = set("""a an and are as at be by for from has have in is it its of on or our the to we will with you your
+this that these those who what which their they them us can should must able strong experience years year plus
+work working role team including such etc using use""".split())
+
+
+def tokenize(text: str) -> list[str]:
+    return [t.strip(".") for t in _TOKEN_RE.findall(text.lower()) if t.strip(".") and t.strip(".") not in _STOPWORDS]
+
+
+# --------------------------------------------------------------------------- #
+# Must-have requirements
+# --------------------------------------------------------------------------- #
+@dataclass
+class Requirement:
+    raw: str
+    skill: str | None = None
+    min_years: float | None = None
+    education_rank: int | None = None
+
+    def check(self, cand: dict) -> tuple[bool, str]:
+        """Return (passes, explanation) for one candidate."""
+        if self.education_rank is not None:
+            ok = cand["education_rank"] >= self.education_rank
+            return ok, f"education {cand['education_level']}"
+        if self.skill and self.min_years is not None:
+            yrs = cand["skill_years"].get(self.skill, 0.0)
+            return yrs >= self.min_years, f"{yrs:g} yrs {self.skill}"
+        if self.skill:
+            return self.skill in cand["skills"], f"{self.skill} {'present' if self.skill in cand['skills'] else 'missing'}"
+        if self.min_years is not None:
+            return cand["experience_years"] >= self.min_years, f"{cand['experience_years']:g} yrs total"
+        return True, ""
+
+
+def parse_requirement(text: str) -> Requirement | None:
+    """Parse strings like '5+ years Python', 'Python 5 years', '3 years experience', 'Kubernetes', 'Master's degree'."""
+    raw = text.strip()
+    for level, rank, pattern in EDUCATION_LEVELS:
+        if re.search(pattern, raw, re.IGNORECASE) and re.search(r"degree|level|education|ph\.?d|master|bachelor", raw, re.I):
+            return Requirement(raw=raw, education_rank=rank)
+    years = None
+    m = re.search(r"(\d{1,2}(?:\.\d)?)\s*\+?\s*(?:years?|yrs?)", raw, re.IGNORECASE)
+    if m:
+        years = float(m.group(1))
+    skills = extract_skills(re.sub(r"(\d{1,2}(?:\.\d)?)\s*\+?\s*(?:years?|yrs?)", " ", raw, flags=re.I))
+    if skills:
+        return Requirement(raw=raw, skill=skills[0], min_years=years)
+    if years is not None:
+        return Requirement(raw=raw, min_years=years)
+    return None
+
+
+def extract_requirements_from_jd(jd: str) -> list[Requirement]:
+    """Pull 'N+ years <skill>' / 'N+ years of experience' statements out of the JD text."""
+    reqs: list[Requirement] = []
+    seen = set()
+    pattern = re.compile(
+        r"(\d{1,2})\s*\+?\s*(?:years?|yrs?)(?:\s+of)?(?:\s+(?:professional|hands-on|industry|production))?"
+        r"(?:\s+experience)?(?:\s+(?:in|with|using|building))?\s+([A-Za-z+#./ -]{0,40})",
+        re.IGNORECASE,
+    )
+    for m in pattern.finditer(jd):
+        years = float(m.group(1))
+        skills = extract_skills(re.split(r"[,;(]| and | or ", m.group(2))[0])
+        key = (skills[0] if skills else None, years)
+        if key in seen:
+            continue
+        seen.add(key)
+        label = f"{int(years)}+ years {skills[0]}" if skills else f"{int(years)}+ years experience"
+        reqs.append(Requirement(raw=label, skill=skills[0] if skills else None, min_years=years))
+    return reqs
+
+
+def critical_skills_from_jd(jd: str) -> list[str]:
+    """Skills listed under Requirements / Must-have style sections (falls back to every skill in the JD)."""
+    critical: list[str] = []
+    in_required = False
+    for line in jd.splitlines():
+        low = line.lower().strip()
+        if re.match(r"^[#*\s]*(requirements|required|must[- ]haves?|qualifications|what you need|minimum qualifications)", low):
+            in_required = True
+            continue
+        if re.match(r"^[#*\s]*(nice[- ]to[- ]haves?|preferred|bonus|benefits|about us|perks)", low):
+            in_required = False
+            continue
+        if in_required or re.search(r"\b(must|required|requires|mandatory|essential)\b", low):
+            critical += [s for s in extract_skills(line) if s not in critical]
+    return critical or extract_skills(jd)
+
+
+# --------------------------------------------------------------------------- #
+# Matcher
+# --------------------------------------------------------------------------- #
+class JobMatcher:
+    def __init__(self, db_path: str | Path = "chroma_db", model_name: str | None = None):
+        import chromadb
+
+        db_path = Path(db_path)
+        registry = json.loads((db_path / REGISTRY_FILE).read_text())
+        self.candidates: dict[str, dict] = {c["candidate_id"]: c for c in registry["candidates"]}
+        self.embedder = Embedder(model_name or registry.get("model", DEFAULT_MODEL))
+        self.collection = chromadb.PersistentClient(path=str(db_path)).get_collection(COLLECTION_NAME)
+        self._ids = list(self.candidates)
+        self._bm25 = BM25Okapi([tokenize(self.candidates[i]["full_text"]) for i in self._ids])
+
+    # ---- retrieval -------------------------------------------------------- #
+    def _jd_passages(self, jd: str, max_chars: int = 600) -> list[str]:
+        """Split the JD into passages (by section, then by size) so each fits the embedding model."""
+        passages: list[str] = []
+        for _, body in split_sections(jd) or [("all", jd)]:
+            buf = ""
+            for line in [l for l in body.splitlines() if l.strip()]:
+                if buf and len(buf) + len(line) > max_chars:
+                    passages.append(buf)
+                    buf = ""
+                buf = f"{buf}\n{line}" if buf else line
+            if buf:
+                passages.append(buf)
+        return [jd[:max_chars]] + passages  # whole-JD head + detailed passages
+
+    def semantic_search(self, jd: str, n_chunks: int = 50) -> dict[str, list[dict]]:
+        """Return candidate_id -> list of {text, section, similarity}, best similarity per chunk."""
+        passages = self._jd_passages(jd)
+        n = min(n_chunks, self.collection.count())
+        res = self.collection.query(query_embeddings=self.embedder.embed(passages), n_results=n,
+                                    include=["documents", "metadatas", "distances"])
+        best: dict[str, dict] = {}
+        for docs, metas, dists in zip(res["documents"], res["metadatas"], res["distances"]):
+            for doc, meta, dist in zip(docs, metas, dists):
+                sim = 1.0 - dist  # cosine distance -> similarity
+                key = f"{meta['candidate_id']}:{meta['chunk_index']}"
+                if key not in best or sim > best[key]["similarity"]:
+                    best[key] = {"candidate_id": meta["candidate_id"], "text": doc,
+                                 "section": meta["section"], "similarity": sim}
+        hits: dict[str, list[dict]] = {}
+        for hit in best.values():
+            hits.setdefault(hit["candidate_id"], []).append(hit)
+        for lst in hits.values():
+            lst.sort(key=lambda h: h["similarity"], reverse=True)
+        return hits
+
+    def keyword_scores(self, jd: str) -> dict[str, float]:
+        """BM25 score per candidate, normalised to 0-1."""
+        scores = self._bm25.get_scores(tokenize(jd))
+        top = max(scores) if len(scores) and max(scores) > 0 else 1.0
+        return {cid: float(s) / top for cid, s in zip(self._ids, scores)}
+
+    # ---- scoring ---------------------------------------------------------- #
+    @staticmethod
+    def _semantic_component(hits: list[dict]) -> float:
+        if not hits:
+            return 0.0
+        sims = [h["similarity"] for h in hits]
+        raw = 0.6 * sims[0] + 0.4 * (sum(sims[:3]) / len(sims[:3]))
+        return max(0.0, min(1.0, (raw - SIM_FLOOR) / (SIM_CEIL - SIM_FLOOR)))
+
+    @staticmethod
+    def _excerpts(hits: list[dict], matched: list[str], n: int = 3, width: int = 280) -> list[str]:
+        """Top chunks, trimmed around the first matched skill where possible."""
+        out = []
+        for h in hits[:n]:
+            text = " ".join(h["text"].split())
+            if len(text) > width:
+                pos = min((text.lower().find(s.lower()) for s in matched if s.lower() in text.lower()), default=0)
+                start = max(0, pos - width // 3)
+                text = ("..." if start else "") + text[start:start + width].strip() + "..."
+            out.append(f"[{h['section'].title()}] {text}")
+        return out
+
+    @staticmethod
+    def _reasoning(score: int, cand: dict, matched: list[str], missing: list[str], critical: list[str],
+                   section_sims: dict[str, float], req_notes: list[str], min_years: float | None) -> str:
+        strength = "Strong" if score >= 75 else "Good" if score >= 60 else "Moderate" if score >= 45 else "Weak"
+        parts = [f"{strength} match."]
+        if critical:
+            parts.append(f"Has {len(matched)}/{len(critical)} critical skills"
+                         + (f" ({', '.join(matched)})" if matched else "")
+                         + (f"; missing {', '.join(missing)}." if missing else "."))
+        top_sections = sorted(section_sims.items(), key=lambda kv: kv[1], reverse=True)[:2]
+        if top_sections:
+            parts.append("Closest sections to the JD: "
+                         + ", ".join(f"{s.title()} ({v:.2f})" for s, v in top_sections) + ".")
+        exp = f"{cand['experience_years']:g} years of experience"
+        if min_years:
+            exp += f" (JD asks {min_years:g}+)"
+        parts.append(exp + f"; education: {cand['education_level']}.")
+        if req_notes:
+            parts.append("Must-haves met: " + "; ".join(req_notes) + ".")
+        return " ".join(parts)
+
+    def match(self, jd: str, k: int = 10, must_haves: list[str] | None = None, auto_requirements: bool = True,
+              critical_skills: list[str] | None = None, min_score: int = 0) -> dict:
+        critical = critical_skills or critical_skills_from_jd(jd)
+        requirements = [r for r in (parse_requirement(m) for m in (must_haves or [])) if r]
+        if auto_requirements:
+            known = {(r.skill, r.min_years) for r in requirements}
+            requirements += [r for r in extract_requirements_from_jd(jd) if (r.skill, r.min_years) not in known]
+        total_years_req = max((r.min_years for r in requirements if r.min_years and not r.skill), default=None)
+        any_years_req = max((r.min_years for r in requirements if r.min_years), default=None)
+
+        sem_hits = self.semantic_search(jd)
+        kw = self.keyword_scores(jd)
+
+        results, filtered_out = [], []
+        for cid, cand in self.candidates.items():
+            hits = sem_hits.get(cid, [])
+            sem = self._semantic_component(hits)
+            matched = [s for s in critical if s in cand["skills"]]
+            missing = [s for s in critical if s not in cand["skills"]]
+            skill_cov = len(matched) / len(critical) if critical else 0.0
+            target_years = total_years_req or any_years_req
+            exp_fit = min(1.0, cand["experience_years"] / target_years) if target_years else 1.0
+            score = round(100 * (W_SEMANTIC * sem + W_SKILLS * skill_cov + W_KEYWORD * kw.get(cid, 0.0)
+                                 + W_EXPERIENCE * exp_fit))
+
+            checks = [(r, *r.check(cand)) for r in requirements]
+            failed = [f"{r.raw} (has {note})" for r, ok, note in checks if not ok]
+            if failed:
+                filtered_out.append({"candidate_name": cand["candidate_name"], "resume_path": cand["resume_path"],
+                                     "match_score": score, "failed_requirements": failed})
+                continue
+            if score < min_score:
+                continue
+
+            section_sims: dict[str, float] = {}
+            for h in hits:
+                section_sims[h["section"]] = max(section_sims.get(h["section"], 0.0), h["similarity"])
+            all_matched = [s for s in extract_skills(jd) if s in cand["skills"]]
+            results.append({
+                "candidate_name": cand["candidate_name"],
+                "resume_path": cand["resume_path"],
+                "match_score": score,
+                "matched_skills": all_matched,
+                "relevant_excerpts": self._excerpts(hits, all_matched),
+                "reasoning": self._reasoning(score, cand, matched, missing, critical, section_sims,
+                                             [f"{r.raw} ({note})" for r, ok, note in checks], target_years),
+                "matched_sections": [s for s, _ in sorted(section_sims.items(), key=lambda kv: kv[1], reverse=True)[:3]],
+                "score_breakdown": {"semantic": round(100 * sem), "critical_skills": round(100 * skill_cov),
+                                    "keyword_bm25": round(100 * kw.get(cid, 0.0)), "experience_fit": round(100 * exp_fit)},
+                "experience_years": cand["experience_years"],
+                "education": cand["education"],
+            })
+
+        results.sort(key=lambda r: r["match_score"], reverse=True)
+        return {
+            "job_description": jd,
+            "critical_skills": critical,
+            "must_have_requirements": [r.raw for r in requirements],
+            "top_matches": results[:k],
+            "filtered_out": sorted(filtered_out, key=lambda r: r["match_score"], reverse=True),
+        }
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Match resumes to a job description (hybrid RAG search).")
+    src = parser.add_mutually_exclusive_group(required=True)
+    src.add_argument("--jd", help="Job description text")
+    src.add_argument("--jd-file", help="Path to a job description file")
+    parser.add_argument("--db", default="chroma_db", help="ChromaDB directory created by resume_rag.py")
+    parser.add_argument("--k", type=int, default=10, help="Number of matches to return")
+    parser.add_argument("--must-have", action="append", default=[],
+                        help='Must-have requirement, repeatable: "5+ years Python", "Kubernetes", "Master\'s degree"')
+    parser.add_argument("--critical-skill", action="append", default=[], help="Override critical skills (repeatable)")
+    parser.add_argument("--no-auto-requirements", action="store_true", help="Don't infer 'N+ years X' must-haves from the JD")
+    parser.add_argument("--min-score", type=int, default=0, help="Drop matches below this score")
+    parser.add_argument("--output", help="Write JSON result to this file (also printed to stdout)")
+    parser.add_argument("--brief", action="store_true", help="Print only the fields from the assignment's output format")
+    args = parser.parse_args()
+
+    jd = Path(args.jd_file).read_text() if args.jd_file else args.jd
+    result = JobMatcher(args.db).match(jd.strip(), k=args.k, must_haves=args.must_have,
+                                        auto_requirements=not args.no_auto_requirements,
+                                        critical_skills=args.critical_skill or None, min_score=args.min_score)
+    if args.brief:
+        keep = ["candidate_name", "resume_path", "match_score", "matched_skills", "relevant_excerpts", "reasoning"]
+        result = {"job_description": result["job_description"],
+                  "top_matches": [{k: m[k] for k in keep} for m in result["top_matches"]]}
+    text = json.dumps(result, indent=2)
+    if args.output:
+        Path(args.output).write_text(text)
+    print(text)
+
+
+if __name__ == "__main__":
+    main()
