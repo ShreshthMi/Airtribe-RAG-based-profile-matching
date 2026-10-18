@@ -15,6 +15,13 @@
   "must_have_requirements": [
     "5+ years Python"
   ],
+  "unparsed_must_haves": [],
+  "score_weights": {
+    "semantic": 0.5,
+    "critical_skills": 0.3,
+    "keyword_bm25": 0.1,
+    "experience_fit": 0.1
+  },
   "top_matches": [
     {
       "candidate_name": "Priya Sharma",
@@ -52,12 +59,49 @@
         "experience_fit": 100
       },
       "experience_years": 11.4,
-      "education": "M.Tech in Computer Science, IIT Delhi, 2015"
+      "education": "M.Tech in Computer Science, IIT Delhi, 2015",
+      "failed_requirements": []
+    },
+    {
+      "candidate_name": "Ananya Rao",
+      "resume_path": "resumes/ananya_rao.md",
+      "match_score": 92,
+      "matched_skills": [
+        "Python",
+        "NLP",
+        "LLMs",
+        "RAG",
+        "PyTorch",
+        "Vector Databases",
+        "AWS",
+        "Docker",
+        "Kubernetes"
+      ],
+      "relevant_excerpts": [
+        "[Experience] Senior NLP Engineer, Lattice Commerce Feb 2023 - Present - Built a retrieval-augmented generation (RAG) assistant in Python over 4M support articles using Weaviate and PyTorch rerankers. - Fine-tuned open LLMs with Hugging Face and served them with Docker on Kubernetes (EKS) on A...",
+        "[Skills] Python, PyTorch, Hugging Face, LLMs, RAG, LangChain, Vector Databases (Weaviate, FAISS), NLP, Docker, Kubernetes, AWS, FastAPI, SQL",
+        "[Summary] Senior NLP engineer with 7 years of experience shipping language models to production, most recently LLM-based search and assistants."
+      ],
+      "reasoning": "Strong match. Has 9/10 critical skills (Python, NLP, PyTorch, LLMs, RAG, Vector Databases, AWS, Docker, Kubernetes); missing Machine Learning. Closest sections to the JD: Experience (0.62), Skills (0.60). 7.3 years of experience (JD asks 5+); education: Master. Must-haves met: 5+ years Python (7.3 yrs Python).",
+      "matched_sections": [
+        "experience",
+        "skills",
+        "summary"
+      ],
+      "score_breakdown": {
+        "semantic": 92,
+        "critical_skills": 90,
+        "keyword_bm25": 96,
+        "experience_fit": 100
+      },
+      "experience_years": 7.3,
+      "education": "M.Tech in Computer Science, IIIT Hyderabad, 2019",
+      "failed_requirements": []
     },
     {
       "candidate_name": "Vikram Iyer",
       "resume_path": "resumes/vikram_iyer.md",
-      "match_score": 82,
+      "match_score": 84,
       "matched_skills": [
         "Python",
         "NLP",
@@ -70,28 +114,122 @@
       ],
       "relevant_excerpts": [
         "[Skills] Python, PyTorch, NLP, LLMs, Hugging Face, RAG, LangChain, Vector Databases (FAISS, Weaviate), Deep Learning, AWS, Docker",
-        "[Experience] Applied Scientist, Amazon Sep 2020 - Present - Fine-tuned large language models in PyTorch for product question answering. - Built retrieval augmented generation pipelines with FAISS and Hugging Face; deployed on AWS SageMaker. Research Intern, Microsoft Research May 2019 - Aug 2...",
-        "[Summary] NLP researcher turned applied scientist; PhD in natural language processing with 5 years of industry experience on LLMs."
+        "[Experience] Applied Scientist, Amazon Sep 2020 - Present - Fine-tuned large language models in PyTorch for product question answering. - Built retrieval augmented generation pipelines with FAISS and Hugging Face; deployed on AWS SageMaker. Research Intern, Microsoft Research May 2019 - Aug 2..."
       ],
       "reasoning": "Strong match. Has 8/10 critical skills (Python, NLP, PyTorch, LLMs, RAG, Vector Databases, AWS, Docker); missing Machine Learning, Kubernetes. Closest sections to the JD: Skills (0.59), Experience (0.49). 6.5 years of experience (JD asks 5+); education: PhD. Must-haves met: 5+ years Python (6.5 yrs Python).",
       "matched_sections": [
         "skills",
-        "experience",
-        "summary"
+        "experience"
       ],
       "score_breakdown": {
-        "semantic": 81,
+        "semantic": 84,
         "critical_skills": 80,
-        "keyword_bm25": 76,
+        "keyword_bm25": 78,
         "experience_fit": 100
       },
       "experience_years": 6.5,
-      "education": "PhD in Computer Science (NLP), IISc Bangalore, 2020"
+      "education": "PhD in Computer Science (NLP), IISc Bangalore, 2020",
+      "failed_requirements": []
+    },
+    {
+      "candidate_name": "Tom\u00e1s Herrera",
+      "resume_path": "resumes/tomas_herrera.md",
+      "match_score": 83,
+      "matched_skills": [
+        "Python",
+        "Machine Learning",
+        "PyTorch",
+        "Spark",
+        "MLOps",
+        "AWS",
+        "Docker",
+        "Kubernetes"
+      ],
+      "relevant_excerpts": [
+        "[Skills] Python, PyTorch, TensorFlow, Spark, SQL, AWS (SageMaker), Docker, Kubernetes, Airflow, MLflow, Statistics, A/B testing",
+        "[Experience] Senior Machine Learning Engineer, Streamwave Jan 2022 - Present - Built PyTorch two-tower and deep ranking models for video recommendations (+11% watch time). - Python feature pipelines on Spark; deployed models with Docker on Kubernetes (AWS EKS). - Led a team of 4 engineers. Ma..."
+      ],
+      "reasoning": "Strong match. Has 6/10 critical skills (Python, Machine Learning, PyTorch, AWS, Docker, Kubernetes); missing NLP, LLMs, RAG, Vector Databases. Closest sections to the JD: Skills (0.65), Experience (0.62). 7.1 years of experience (JD asks 5+); education: Master. Must-haves met: 5+ years Python (7.1 yrs Python).",
+      "matched_sections": [
+        "skills",
+        "experience"
+      ],
+      "score_breakdown": {
+        "semantic": 99,
+        "critical_skills": 60,
+        "keyword_bm25": 54,
+        "experience_fit": 100
+      },
+      "experience_years": 7.1,
+      "education": "M.Sc. in Artificial Intelligence, Universidad Polit\u00e9cnica de Madrid, 2019",
+      "failed_requirements": []
+    },
+    {
+      "candidate_name": "David Kim",
+      "resume_path": "resumes/resume_david_kim.txt",
+      "match_score": 75,
+      "matched_skills": [
+        "Python",
+        "Machine Learning",
+        "PyTorch",
+        "Spark",
+        "MLOps",
+        "Docker"
+      ],
+      "relevant_excerpts": [
+        "[Skills] ------ Python/NumPy, PyTorch, Hugging Face Transformers, ONNX, MLflow, Kubeflow, Docker, FastAPI, SQL, Apache Spark",
+        "[Summary] ------- Machine learning engineer with 6 years of experience taking models from notebook to production. Writes Python/NumPy and PyTorch code that is tested, profiled and monitored.",
+        "[Experience] ---------- Machine Learning Engineer - Orbitflow (2021 - Present) * Deployed a real-time fraud model (PyTorch exported to ONNX) serving 3,000 predictions a second at 15 ms p99. * Built an MLflow model registry with automated drift monitoring. Data Engineer - Pinecrest Software (2..."
+      ],
+      "reasoning": "Strong match. Has 4/10 critical skills (Python, Machine Learning, PyTorch, Docker); missing NLP, LLMs, RAG, Vector Databases, AWS, Kubernetes. Closest sections to the JD: Skills (0.66), Summary (0.55). 7.8 years of experience (JD asks 5+); education: Master. Must-haves met: 5+ years Python (5.8 yrs Python).",
+      "matched_sections": [
+        "skills",
+        "summary",
+        "experience"
+      ],
+      "score_breakdown": {
+        "semantic": 96,
+        "critical_skills": 40,
+        "keyword_bm25": 53,
+        "experience_fit": 100
+      },
+      "experience_years": 7.8,
+      "education": "M.S. Computer Science (Machine Learning), Lakeshore Institute of Technology, 2019",
+      "failed_requirements": []
+    },
+    {
+      "candidate_name": "John Doe",
+      "resume_path": "resumes/john_doe.txt",
+      "match_score": 68,
+      "matched_skills": [
+        "Python",
+        "Machine Learning",
+        "PyTorch",
+        "Docker"
+      ],
+      "relevant_excerpts": [
+        "[Skills] Python, PyTorch, TensorFlow, Computer Vision (OpenCV), Deep Learning, NumPy, Docker, GCP (Vertex AI, BigQuery), Git, Linux",
+        "[Experience] Machine Learning Engineer - Waymo Mar 2021 - Present - Trained PyTorch perception models for 3D object detection; reduced false positives by 18%. - Built Python data pipelines on GCP processing 50TB of sensor data per week. Computer Vision Engineer - Clarifai Jan 2019 - Feb 2021..."
+      ],
+      "reasoning": "Good match. Has 4/10 critical skills (Python, Machine Learning, PyTorch, Docker); missing NLP, LLMs, RAG, Vector Databases, AWS, Kubernetes. Closest sections to the JD: Skills (0.58), Experience (0.53). 7.8 years of experience (JD asks 5+); education: Master. Must-haves met: 5+ years Python (7.8 yrs Python).",
+      "matched_sections": [
+        "skills",
+        "experience"
+      ],
+      "score_breakdown": {
+        "semantic": 85,
+        "critical_skills": 40,
+        "keyword_bm25": 34,
+        "experience_fit": 100
+      },
+      "experience_years": 7.8,
+      "education": "Master of Science in Electrical Engineering, Stanford University, 2018",
+      "failed_requirements": []
     },
     {
       "candidate_name": "Maria Garcia",
       "resume_path": "resumes/maria_garcia.txt",
-      "match_score": 68,
+      "match_score": 67,
       "matched_skills": [
         "Python",
         "AWS",
@@ -112,16 +250,17 @@
       "score_breakdown": {
         "semantic": 84,
         "critical_skills": 40,
-        "keyword_bm25": 40,
+        "keyword_bm25": 33,
         "experience_fit": 100
       },
       "experience_years": 7.8,
-      "education": "B.S. in Information Systems, UT Austin, 2018"
+      "education": "B.S. in Information Systems, UT Austin, 2018",
+      "failed_requirements": []
     },
     {
       "candidate_name": "Rahul Verma",
       "resume_path": "resumes/rahul_verma.md",
-      "match_score": 68,
+      "match_score": 67,
       "matched_skills": [
         "Python",
         "Spark",
@@ -142,70 +281,70 @@
       "score_breakdown": {
         "semantic": 91,
         "critical_skills": 30,
-        "keyword_bm25": 36,
+        "keyword_bm25": 29,
         "experience_fit": 100
       },
       "experience_years": 9.5,
-      "education": "B.Tech in Electronics, JNTU Hyderabad, 2017"
+      "education": "B.Tech in Electronics, JNTU Hyderabad, 2017",
+      "failed_requirements": []
     },
     {
-      "candidate_name": "John Doe",
-      "resume_path": "resumes/john_doe.txt",
+      "candidate_name": "Omar Haddad",
+      "resume_path": "resumes/omar_haddad.md",
       "match_score": 66,
       "matched_skills": [
         "Python",
-        "Machine Learning",
-        "PyTorch",
-        "Docker"
+        "AWS",
+        "Docker",
+        "Kubernetes"
       ],
       "relevant_excerpts": [
-        "[Skills] Python, PyTorch, TensorFlow, Computer Vision (OpenCV), Deep Learning, NumPy, Docker, GCP (Vertex AI, BigQuery), Git, Linux",
-        "[Experience] Machine Learning Engineer - Waymo Mar 2021 - Present - Trained PyTorch perception models for 3D object detection; reduced false positives by 18%. - Built Python data pipelines on GCP processing 50TB of sensor data per week. Computer Vision Engineer - Clarifai Jan 2019 - Feb 2021...",
-        "[Summary] Machine learning engineer focused on deep learning and computer vision, 6 years of experience."
+        "[Skills] Kubernetes, Docker, Terraform, GCP, AWS, Go, Python, Linux, Prometheus, Grafana, CI/CD, Helm"
       ],
-      "reasoning": "Good match. Has 4/10 critical skills (Python, Machine Learning, PyTorch, Docker); missing NLP, LLMs, RAG, Vector Databases, AWS, Kubernetes. Closest sections to the JD: Skills (0.58), Experience (0.53). 7.8 years of experience (JD asks 5+); education: Master. Must-haves met: 5+ years Python (7.8 yrs Python).",
+      "reasoning": "Good match. Has 4/10 critical skills (Python, AWS, Docker, Kubernetes); missing Machine Learning, NLP, PyTorch, LLMs, RAG, Vector Databases. Closest sections to the JD: Skills (0.57). 8.2 years of experience (JD asks 5+); education: Bachelor. Must-haves met: 5+ years Python (5.8 yrs Python).",
       "matched_sections": [
-        "skills",
-        "experience",
-        "summary"
+        "skills"
       ],
       "score_breakdown": {
         "semantic": 83,
         "critical_skills": 40,
-        "keyword_bm25": 31,
+        "keyword_bm25": 23,
         "experience_fit": 100
       },
-      "experience_years": 7.8,
-      "education": "Master of Science in Electrical Engineering, Stanford University, 2018"
+      "experience_years": 8.2,
+      "education": "B.Sc. in Computer Engineering, University of Jordan, 2018",
+      "failed_requirements": []
     },
     {
-      "candidate_name": "David Okafor",
-      "resume_path": "resumes/david_okafor.txt",
-      "match_score": 64,
+      "candidate_name": "Elena Rodriguez",
+      "resume_path": "resumes/resume_elena_rodriguez.docx",
+      "match_score": 65,
       "matched_skills": [
         "Python",
         "AWS",
-        "Docker"
+        "Docker",
+        "Kubernetes"
       ],
       "relevant_excerpts": [
-        "[Experience] Lead Software Engineer, Deliveroo Jan 2019 - Present - Lead a team of 8 Python engineers building Django and FastAPI services on AWS. - Designed REST APIs and a React admin dashboard. Software Engineer, Sky Sep 2014 - Dec 2018 - Built Python (Django, Flask) web apps, PostgreSQL a...",
-        "[Skills] Python, Django, FastAPI, Flask, PostgreSQL, Redis, Celery, React, JavaScript, Docker, AWS, REST APIs",
-        "[Summary] Full-stack Python developer with 10 years of experience building SaaS products with Django and React."
+        "[Skills] Area | Tools Cloud | AWS, GCP Infrastructure as code | Terraform, Ansible Containers | Docker, Kubernetes, Helm Languages | Go, PYTHON, Bash Observability | Prometheus, Grafana, OpenTelemetry",
+        "[Experience] ...ngineer - Tidewater Robotics (2021 - Present) Cut monthly cloud spend by 27% by right-sizing Kubernetes clusters. Wrote PYTHON automation that rotates credentials across 300 services with zero downtime. Leads incident response and blameless postmortems. DevOps Engineer - Saffron...",
+        "[Summary] Site reliability engineer with 9 years of experience keeping production boring. Automates everything: infrastructure as code with Terraform, release tooling in Go, and operational scripts in PYTHON and Bash."
       ],
-      "reasoning": "Good match. Has 3/10 critical skills (Python, AWS, Docker); missing Machine Learning, NLP, PyTorch, LLMs, RAG, Vector Databases, Kubernetes. Closest sections to the JD: Experience (0.60), Skills (0.55). 12.2 years of experience (JD asks 5+); education: Bachelor. Must-haves met: 5+ years Python (12.2 yrs Python).",
+      "reasoning": "Good match. Has 4/10 critical skills (Python, AWS, Docker, Kubernetes); missing Machine Learning, NLP, PyTorch, LLMs, RAG, Vector Databases. Closest sections to the JD: Skills (0.57), Experience (0.54). 10.8 years of experience (JD asks 5+); education: Bachelor. Must-haves met: 5+ years Python (5.8 yrs Python).",
       "matched_sections": [
-        "experience",
         "skills",
+        "experience",
         "summary"
       ],
       "score_breakdown": {
-        "semantic": 86,
-        "critical_skills": 30,
-        "keyword_bm25": 17,
+        "semantic": 82,
+        "critical_skills": 40,
+        "keyword_bm25": 26,
         "experience_fit": 100
       },
-      "experience_years": 12.2,
-      "education": "BSc in Computer Science, University of Manchester, 2014"
+      "experience_years": 10.8,
+      "education": "B.Sc. Computer Engineering, Lakeshore Institute of Technology, 2015",
+      "failed_requirements": []
     }
   ],
   "filtered_out": [
@@ -218,9 +357,25 @@
       ]
     },
     {
+      "candidate_name": "Karan Malhotra",
+      "resume_path": "resumes/karan_malhotra.txt",
+      "match_score": 73,
+      "failed_requirements": [
+        "5+ years Python (has 3.3 yrs Python)"
+      ]
+    },
+    {
+      "candidate_name": "Sven Larsen",
+      "resume_path": "resumes/sven_larsen.md",
+      "match_score": 66,
+      "failed_requirements": [
+        "5+ years Python (has 3.8 yrs Python)"
+      ]
+    },
+    {
       "candidate_name": "Aisha Khan",
       "resume_path": "resumes/aisha_khan.md",
-      "match_score": 62,
+      "match_score": 63,
       "failed_requirements": [
         "5+ years Python (has 3.8 yrs Python)"
       ]
@@ -234,9 +389,73 @@
       ]
     },
     {
+      "candidate_name": "Oluwaseun Adeyemi",
+      "resume_path": "resumes/oluwaseun_adeyemi.md",
+      "match_score": 52,
+      "failed_requirements": [
+        "5+ years Python (has 0 yrs Python)"
+      ]
+    },
+    {
+      "candidate_name": "Arash Karimi",
+      "resume_path": "resumes/arash_karimi.md",
+      "match_score": 51,
+      "failed_requirements": [
+        "5+ years Python (has 4.4 yrs Python)"
+      ]
+    },
+    {
+      "candidate_name": "Jessica Park",
+      "resume_path": "resumes/jessica_park.txt",
+      "match_score": 49,
+      "failed_requirements": [
+        "5+ years Python (has 1.2 yrs Python)"
+      ]
+    },
+    {
+      "candidate_name": "Ivan Petrov",
+      "resume_path": "resumes/ivan_petrov.md",
+      "match_score": 46,
+      "failed_requirements": [
+        "5+ years Python (has 4.6 yrs Python)"
+      ]
+    },
+    {
+      "candidate_name": "Hannah Brooks",
+      "resume_path": "resumes/hannah_brooks.md",
+      "match_score": 44,
+      "failed_requirements": [
+        "5+ years Python (has 1.4 yrs Python)"
+      ]
+    },
+    {
+      "candidate_name": "George Mathews",
+      "resume_path": "resumes/george_mathews.txt",
+      "match_score": 43,
+      "failed_requirements": [
+        "5+ years Python (has 0 yrs Python)"
+      ]
+    },
+    {
       "candidate_name": "Neha Gupta",
       "resume_path": "resumes/neha_gupta.md",
-      "match_score": 45,
+      "match_score": 31,
+      "failed_requirements": [
+        "5+ years Python (has 0 yrs Python)"
+      ]
+    },
+    {
+      "candidate_name": "Marcus Chen",
+      "resume_path": "resumes/resume_marcus_chen.pdf",
+      "match_score": 31,
+      "failed_requirements": [
+        "5+ years Python (has 0 yrs Python)"
+      ]
+    },
+    {
+      "candidate_name": "Ravi Shankar",
+      "resume_path": "resumes/ravi_shankar.txt",
+      "match_score": 27,
       "failed_requirements": [
         "5+ years Python (has 0 yrs Python)"
       ]
@@ -244,15 +463,103 @@
     {
       "candidate_name": "Sara Kim",
       "resume_path": "resumes/sara_kim.txt",
-      "match_score": 44,
+      "match_score": 26,
       "failed_requirements": [
         "5+ years Python (has 4.4 yrs Python)"
       ]
     },
     {
+      "candidate_name": "Aisha Bello",
+      "resume_path": "resumes/resume_aisha_bello.docx",
+      "match_score": 23,
+      "failed_requirements": [
+        "5+ years Python (has 0 yrs Python)"
+      ]
+    },
+    {
+      "candidate_name": "John Smith",
+      "resume_path": "resumes/resume_john_smith.docx",
+      "match_score": 20,
+      "failed_requirements": [
+        "5+ years Python (has 0 yrs Python)"
+      ]
+    },
+    {
+      "candidate_name": "Lucia Romano",
+      "resume_path": "resumes/lucia_romano.md",
+      "match_score": 19,
+      "failed_requirements": [
+        "5+ years Python (has 0 yrs Python)"
+      ]
+    },
+    {
+      "candidate_name": "Yuki Tanaka",
+      "resume_path": "resumes/yuki_tanaka.txt",
+      "match_score": 18,
+      "failed_requirements": [
+        "5+ years Python (has 0 yrs Python)"
+      ]
+    },
+    {
+      "candidate_name": "Kwame Mensah",
+      "resume_path": "resumes/kwame_mensah.txt",
+      "match_score": 17,
+      "failed_requirements": [
+        "5+ years Python (has 0 yrs Python)"
+      ]
+    },
+    {
+      "candidate_name": "Daniel Cohen",
+      "resume_path": "resumes/daniel_cohen.md",
+      "match_score": 16,
+      "failed_requirements": [
+        "5+ years Python (has 0 yrs Python)"
+      ]
+    },
+    {
+      "candidate_name": "Priya Sharma",
+      "resume_path": "resumes/resume_priya_sharma.pdf",
+      "match_score": 14,
+      "failed_requirements": [
+        "5+ years Python (has 0 yrs Python)"
+      ]
+    },
+    {
+      "candidate_name": "Priyanka Nair",
+      "resume_path": "resumes/priyanka_nair.txt",
+      "match_score": 12,
+      "failed_requirements": [
+        "5+ years Python (has 0 yrs Python)"
+      ]
+    },
+    {
       "candidate_name": "Emily Chen",
       "resume_path": "resumes/emily_chen.txt",
-      "match_score": 30,
+      "match_score": 11,
+      "failed_requirements": [
+        "5+ years Python (has 0 yrs Python)"
+      ]
+    },
+    {
+      "candidate_name": "Lukas Becker",
+      "resume_path": "resumes/lukas_becker.txt",
+      "match_score": 11,
+      "failed_requirements": [
+        "5+ years Python (has 0 yrs Python)"
+      ]
+    },
+    {
+      "candidate_name": "Sofia Novak",
+      "resume_path": "resumes/resume_sofia_novak.txt",
+      "match_score": 11,
+      "failed_requirements": [
+        "5+ years Python (has 0 yrs Python)"
+      ]
+    },
+    {
+      "candidate_name": "Amara Okonkwo",
+      "resume_path": "resumes/amara_okonkwo.md",
+      "match_score": 9,
       "failed_requirements": [
         "5+ years Python (has 0 yrs Python)"
       ]

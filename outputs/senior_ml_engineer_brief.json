@@ -27,9 +27,31 @@
       "reasoning": "Strong match. Has 10/10 critical skills (Python, Machine Learning, NLP, PyTorch, LLMs, RAG, Vector Databases, AWS, Docker, Kubernetes). Closest sections to the JD: Experience (0.69), Summary (0.66). 11.4 years of experience (JD asks 5+); education: Master. Must-haves met: 5+ years Python (11.4 yrs Python)."
     },
     {
+      "candidate_name": "Ananya Rao",
+      "resume_path": "resumes/ananya_rao.md",
+      "match_score": 92,
+      "matched_skills": [
+        "Python",
+        "NLP",
+        "LLMs",
+        "RAG",
+        "PyTorch",
+        "Vector Databases",
+        "AWS",
+        "Docker",
+        "Kubernetes"
+      ],
+      "relevant_excerpts": [
+        "[Experience] Senior NLP Engineer, Lattice Commerce Feb 2023 - Present - Built a retrieval-augmented generation (RAG) assistant in Python over 4M support articles using Weaviate and PyTorch rerankers. - Fine-tuned open LLMs with Hugging Face and served them with Docker on Kubernetes (EKS) on A...",
+        "[Skills] Python, PyTorch, Hugging Face, LLMs, RAG, LangChain, Vector Databases (Weaviate, FAISS), NLP, Docker, Kubernetes, AWS, FastAPI, SQL",
+        "[Summary] Senior NLP engineer with 7 years of experience shipping language models to production, most recently LLM-based search and assistants."
+      ],
+      "reasoning": "Strong match. Has 9/10 critical skills (Python, NLP, PyTorch, LLMs, RAG, Vector Databases, AWS, Docker, Kubernetes); missing Machine Learning. Closest sections to the JD: Experience (0.62), Skills (0.60). 7.3 years of experience (JD asks 5+); education: Master. Must-haves met: 5+ years Python (7.3 yrs Python)."
+    },
+    {
       "candidate_name": "Vikram Iyer",
       "resume_path": "resumes/vikram_iyer.md",
-      "match_score": 82,
+      "match_score": 84,
       "matched_skills": [
         "Python",
         "NLP",
@@ -42,15 +64,69 @@
       ],
       "relevant_excerpts": [
         "[Skills] Python, PyTorch, NLP, LLMs, Hugging Face, RAG, LangChain, Vector Databases (FAISS, Weaviate), Deep Learning, AWS, Docker",
-        "[Experience] Applied Scientist, Amazon Sep 2020 - Present - Fine-tuned large language models in PyTorch for product question answering. - Built retrieval augmented generation pipelines with FAISS and Hugging Face; deployed on AWS SageMaker. Research Intern, Microsoft Research May 2019 - Aug 2...",
-        "[Summary] NLP researcher turned applied scientist; PhD in natural language processing with 5 years of industry experience on LLMs."
+        "[Experience] Applied Scientist, Amazon Sep 2020 - Present - Fine-tuned large language models in PyTorch for product question answering. - Built retrieval augmented generation pipelines with FAISS and Hugging Face; deployed on AWS SageMaker. Research Intern, Microsoft Research May 2019 - Aug 2..."
       ],
       "reasoning": "Strong match. Has 8/10 critical skills (Python, NLP, PyTorch, LLMs, RAG, Vector Databases, AWS, Docker); missing Machine Learning, Kubernetes. Closest sections to the JD: Skills (0.59), Experience (0.49). 6.5 years of experience (JD asks 5+); education: PhD. Must-haves met: 5+ years Python (6.5 yrs Python)."
     },
     {
+      "candidate_name": "Tom\u00e1s Herrera",
+      "resume_path": "resumes/tomas_herrera.md",
+      "match_score": 83,
+      "matched_skills": [
+        "Python",
+        "Machine Learning",
+        "PyTorch",
+        "Spark",
+        "MLOps",
+        "AWS",
+        "Docker",
+        "Kubernetes"
+      ],
+      "relevant_excerpts": [
+        "[Skills] Python, PyTorch, TensorFlow, Spark, SQL, AWS (SageMaker), Docker, Kubernetes, Airflow, MLflow, Statistics, A/B testing",
+        "[Experience] Senior Machine Learning Engineer, Streamwave Jan 2022 - Present - Built PyTorch two-tower and deep ranking models for video recommendations (+11% watch time). - Python feature pipelines on Spark; deployed models with Docker on Kubernetes (AWS EKS). - Led a team of 4 engineers. Ma..."
+      ],
+      "reasoning": "Strong match. Has 6/10 critical skills (Python, Machine Learning, PyTorch, AWS, Docker, Kubernetes); missing NLP, LLMs, RAG, Vector Databases. Closest sections to the JD: Skills (0.65), Experience (0.62). 7.1 years of experience (JD asks 5+); education: Master. Must-haves met: 5+ years Python (7.1 yrs Python)."
+    },
+    {
+      "candidate_name": "David Kim",
+      "resume_path": "resumes/resume_david_kim.txt",
+      "match_score": 75,
+      "matched_skills": [
+        "Python",
+        "Machine Learning",
+        "PyTorch",
+        "Spark",
+        "MLOps",
+        "Docker"
+      ],
+      "relevant_excerpts": [
+        "[Skills] ------ Python/NumPy, PyTorch, Hugging Face Transformers, ONNX, MLflow, Kubeflow, Docker, FastAPI, SQL, Apache Spark",
+        "[Summary] ------- Machine learning engineer with 6 years of experience taking models from notebook to production. Writes Python/NumPy and PyTorch code that is tested, profiled and monitored.",
+        "[Experience] ---------- Machine Learning Engineer - Orbitflow (2021 - Present) * Deployed a real-time fraud model (PyTorch exported to ONNX) serving 3,000 predictions a second at 15 ms p99. * Built an MLflow model registry with automated drift monitoring. Data Engineer - Pinecrest Software (2..."
+      ],
+      "reasoning": "Strong match. Has 4/10 critical skills (Python, Machine Learning, PyTorch, Docker); missing NLP, LLMs, RAG, Vector Databases, AWS, Kubernetes. Closest sections to the JD: Skills (0.66), Summary (0.55). 7.8 years of experience (JD asks 5+); education: Master. Must-haves met: 5+ years Python (5.8 yrs Python)."
+    },
+    {
+      "candidate_name": "John Doe",
+      "resume_path": "resumes/john_doe.txt",
+      "match_score": 68,
+      "matched_skills": [
+        "Python",
+        "Machine Learning",
+        "PyTorch",
+        "Docker"
+      ],
+      "relevant_excerpts": [
+        "[Skills] Python, PyTorch, TensorFlow, Computer Vision (OpenCV), Deep Learning, NumPy, Docker, GCP (Vertex AI, BigQuery), Git, Linux",
+        "[Experience] Machine Learning Engineer - Waymo Mar 2021 - Present - Trained PyTorch perception models for 3D object detection; reduced false positives by 18%. - Built Python data pipelines on GCP processing 50TB of sensor data per week. Computer Vision Engineer - Clarifai Jan 2019 - Feb 2021..."
+      ],
+      "reasoning": "Good match. Has 4/10 critical skills (Python, Machine Learning, PyTorch, Docker); missing NLP, LLMs, RAG, Vector Databases, AWS, Kubernetes. Closest sections to the JD: Skills (0.58), Experience (0.53). 7.8 years of experience (JD asks 5+); education: Master. Must-haves met: 5+ years Python (7.8 yrs Python)."
+    },
+    {
       "candidate_name": "Maria Garcia",
       "resume_path": "resumes/maria_garcia.txt",
-      "match_score": 68,
+      "match_score": 67,
       "matched_skills": [
         "Python",
         "AWS",
@@ -63,6 +139,55 @@
         "[Skills] AWS, GCP, Kubernetes, Docker, Terraform, CI/CD (Jenkins, GitHub Actions), Linux, Bash, Python, Prometheus"
       ],
       "reasoning": "Good match. Has 4/10 critical skills (Python, AWS, Docker, Kubernetes); missing Machine Learning, NLP, PyTorch, LLMs, RAG, Vector Databases. Closest sections to the JD: Experience (0.58), Summary (0.57). 7.8 years of experience (JD asks 5+); education: Bachelor. Must-haves met: 5+ years Python (5.7 yrs Python)."
+    },
+    {
+      "candidate_name": "Rahul Verma",
+      "resume_path": "resumes/rahul_verma.md",
+      "match_score": 67,
+      "matched_skills": [
+        "Python",
+        "Spark",
+        "AWS",
+        "Docker"
+      ],
+      "relevant_excerpts": [
+        "[Skills] Python, SQL, Spark (PySpark), Airflow, Kafka, Hadoop, Snowflake, dbt, AWS, Azure, Docker, Terraform",
+        "[Experience] Senior Data Engineer, Microsoft Feb 2021 - Present - Built PySpark pipelines on Azure processing 5B events/day; orchestrated with Airflow. - Python tooling for data quality checks; Kafka streaming ingestion. Data Engineer, Deloitte May 2017 - Jan 2021 - Hadoop to Snowflake migrat...",
+        "[Summary] Data engineer with 7 years of experience building batch and streaming pipelines on the cloud."
+      ],
+      "reasoning": "Good match. Has 3/10 critical skills (Python, AWS, Docker); missing Machine Learning, NLP, PyTorch, LLMs, RAG, Vector Databases, Kubernetes. Closest sections to the JD: Skills (0.61), Experience (0.59). 9.5 years of experience (JD asks 5+); education: Bachelor. Must-haves met: 5+ years Python (9.5 yrs Python)."
+    },
+    {
+      "candidate_name": "Omar Haddad",
+      "resume_path": "resumes/omar_haddad.md",
+      "match_score": 66,
+      "matched_skills": [
+        "Python",
+        "AWS",
+        "Docker",
+        "Kubernetes"
+      ],
+      "relevant_excerpts": [
+        "[Skills] Kubernetes, Docker, Terraform, GCP, AWS, Go, Python, Linux, Prometheus, Grafana, CI/CD, Helm"
+      ],
+      "reasoning": "Good match. Has 4/10 critical skills (Python, AWS, Docker, Kubernetes); missing Machine Learning, NLP, PyTorch, LLMs, RAG, Vector Databases. Closest sections to the JD: Skills (0.57). 8.2 years of experience (JD asks 5+); education: Bachelor. Must-haves met: 5+ years Python (5.8 yrs Python)."
+    },
+    {
+      "candidate_name": "Elena Rodriguez",
+      "resume_path": "resumes/resume_elena_rodriguez.docx",
+      "match_score": 65,
+      "matched_skills": [
+        "Python",
+        "AWS",
+        "Docker",
+        "Kubernetes"
+      ],
+      "relevant_excerpts": [
+        "[Skills] Area | Tools Cloud | AWS, GCP Infrastructure as code | Terraform, Ansible Containers | Docker, Kubernetes, Helm Languages | Go, PYTHON, Bash Observability | Prometheus, Grafana, OpenTelemetry",
+        "[Experience] ...ngineer - Tidewater Robotics (2021 - Present) Cut monthly cloud spend by 27% by right-sizing Kubernetes clusters. Wrote PYTHON automation that rotates credentials across 300 services with zero downtime. Leads incident response and blameless postmortems. DevOps Engineer - Saffron...",
+        "[Summary] Site reliability engineer with 9 years of experience keeping production boring. Automates everything: infrastructure as code with Terraform, release tooling in Go, and operational scripts in PYTHON and Bash."
+      ],
+      "reasoning": "Good match. Has 4/10 critical skills (Python, AWS, Docker, Kubernetes); missing Machine Learning, NLP, PyTorch, LLMs, RAG, Vector Databases. Closest sections to the JD: Skills (0.57), Experience (0.54). 10.8 years of experience (JD asks 5+); education: Bachelor. Must-haves met: 5+ years Python (5.8 yrs Python)."
     }
   ]
 }
