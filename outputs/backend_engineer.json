@@ -44,7 +44,7 @@
         "[Skills] Java, Spring Boot, Golang, Microservices, Kafka, Redis, PostgreSQL, Docker, Kubernetes, AWS, Terraform, System Design, REST APIs",
         "[Summary] Backend engineer with 9 years of experience designing high-throughput microservices in Java and Go."
       ],
-      "reasoning": "Strong match. Has 8/8 critical skills (Java, Spring Boot, REST APIs, Microservices, Kafka, Redis, AWS, Kubernetes). Closest sections to the JD: Experience (0.71), Skills (0.65). 11.3 years of experience (JD asks 6+); education: Bachelor. Must-haves met: 5+ years Java (7.7 yrs Java); 6+ years experience (11.3 yrs total).",
+      "reasoning": "Score 100/100. Has 8/8 critical skills (Java, Spring Boot, REST APIs, Microservices, Kafka, Redis, AWS, Kubernetes). Closest sections to the JD: Experience (0.71), Skills (0.65). 11.3 years of experience (JD asks 6+); education: Bachelor. Must-haves met: 5+ years Java (7.7 yrs Java); 6+ years experience (11.3 yrs total).",
       "matched_sections": [
         "experience",
         "skills",
@@ -58,7 +58,8 @@
       },
       "experience_years": 11.3,
       "education": "B.E. in Computer Engineering, University of Pune, 2015",
-      "failed_requirements": []
+      "failed_requirements": [],
+      "match_score_exact": 100.0
     },
     {
       "candidate_name": "Oluwaseun Adeyemi",
@@ -81,7 +82,7 @@
         "[Skills] Java, Spring Boot, Microservices, REST APIs, Kafka, Redis, PostgreSQL, Docker, Kubernetes, AWS, Terraform, System Design",
         "[Summary] Senior backend engineer with 9 years of experience building payment and banking platforms on the JVM."
       ],
-      "reasoning": "Strong match. Has 8/8 critical skills (Java, Spring Boot, REST APIs, Microservices, Kafka, Redis, AWS, Kubernetes). Closest sections to the JD: Experience (0.70), Skills (0.66). 9.2 years of experience (JD asks 6+); education: Bachelor. Must-haves met: 5+ years Java (9.2 yrs Java); 6+ years experience (9.2 yrs total).",
+      "reasoning": "Score 99/100. Has 8/8 critical skills (Java, Spring Boot, REST APIs, Microservices, Kafka, Redis, AWS, Kubernetes). Closest sections to the JD: Experience (0.70), Skills (0.66). 9.2 years of experience (JD asks 6+); education: Bachelor. Must-haves met: 5+ years Java (9.2 yrs Java); 6+ years experience (9.2 yrs total).",
       "matched_sections": [
         "experience",
         "skills",
@@ -95,7 +96,8 @@
       },
       "experience_years": 9.2,
       "education": "B.Sc. in Computer Science, University of Lagos, 2017",
-      "failed_requirements": []
+      "failed_requirements": [],
+      "match_score_exact": 98.5085
     },
     {
       "candidate_name": "George Mathews",
@@ -115,7 +117,7 @@
         "[Summary] Engineering manager with 14 years of experience: 9 as a hands-on Java backend engineer and 5 leading payment platform teams.",
         "[Skills] Leadership, Java, Spring Boot, Microservices, Kafka, AWS, Kubernetes, System Design, Agile, Hiring"
       ],
-      "reasoning": "Strong match. Has 6/8 critical skills (Java, Spring Boot, Microservices, Kafka, AWS, Kubernetes); missing REST APIs, Redis. Closest sections to the JD: Experience (0.68), Summary (0.66). 14.3 years of experience (JD asks 6+); education: Bachelor. Must-haves met: 5+ years Java (14.3 yrs Java); 6+ years experience (14.3 yrs total).",
+      "reasoning": "Score 89/100. Has 6/8 critical skills (Java, Spring Boot, Microservices, Kafka, AWS, Kubernetes); missing REST APIs, Redis. Closest sections to the JD: Experience (0.68), Summary (0.66). 14.3 years of experience (JD asks 6+); education: Bachelor. Must-haves met: 5+ years Java (14.3 yrs Java); 6+ years experience (14.3 yrs total).",
       "matched_sections": [
         "experience",
         "summary",
@@ -129,7 +131,8 @@
       },
       "experience_years": 14.3,
       "education": "B.Tech in Computer Science, NIT Calicut, 2012",
-      "failed_requirements": []
+      "failed_requirements": [],
+      "match_score_exact": 88.9661
     },
     {
       "candidate_name": "Marcus Chen",
@@ -147,7 +150,7 @@
         "[Summary] Java developer with 7 years of experience building reliable microservices for payments and banking. Works across the JVM stack with a focus on clean architecture and observability.",
         "[Experience] Senior Java Developer - Lumen Ridge Bank (2020 - Present) \u007f Built a Kafka-based payment-event platform in Java 17 and Spring Boot handling 5,000 transactions a second. \u007f Reduced settlement errors by 40% with idempotent consumers and the outbox pattern. Java Developer - Atlas Peak..."
       ],
-      "reasoning": "Good match. Has 5/8 critical skills (Java, Spring Boot, Microservices, Kafka, Kubernetes); missing REST APIs, Redis, AWS. Closest sections to the JD: Skills (0.56), Summary (0.54). 9.8 years of experience (JD asks 6+); education: Bachelor. Must-haves met: 5+ years Java (9.8 yrs Java); 6+ years experience (9.8 yrs total).",
+      "reasoning": "Score 74/100. Has 5/8 critical skills (Java, Spring Boot, Microservices, Kafka, Kubernetes); missing REST APIs, Redis, AWS. Closest sections to the JD: Skills (0.56), Summary (0.54). 9.8 years of experience (JD asks 6+); education: Bachelor. Must-haves met: 5+ years Java (9.8 yrs Java); 6+ years experience (9.8 yrs total).",
       "matched_sections": [
         "skills",
         "summary",
@@ -161,27 +164,8 @@
       },
       "experience_years": 9.8,
       "education": "B.Eng. Software Engineering, Riverside State University, 2017",
-      "failed_requirements": []
-    },
-    {
-      "candidate_name": "Aisha Bello",
-      "resume_path": "resumes/resume_aisha_bello.docx",
-      "match_score": 15,
-      "matched_skills": [
-        "Java"
-      ],
-      "relevant_excerpts": [],
-      "reasoning": "Weak match. Has 1/8 critical skills (Java); missing Spring Boot, REST APIs, Microservices, Kafka, Redis, AWS, Kubernetes. 8.8 years of experience (JD asks 6+); education: Master. Must-haves met: 5+ years Java (5.8 yrs Java); 6+ years experience (8.8 yrs total).",
-      "matched_sections": [],
-      "score_breakdown": {
-        "semantic": 0,
-        "critical_skills": 12,
-        "keyword_bm25": 15,
-        "experience_fit": 100
-      },
-      "experience_years": 8.8,
-      "education": "MBA, Riverside State University, 2018",
-      "failed_requirements": []
+      "failed_requirements": [],
+      "match_score_exact": 73.5098
     }
   ],
   "filtered_out": [
@@ -363,7 +347,15 @@
       "resume_path": "resumes/neha_gupta.md",
       "match_score": 15,
       "failed_requirements": [
-        "5+ years Java (has 0.9 yrs Java)"
+        "5+ years Java (has 0 yrs Java)"
+      ]
+    },
+    {
+      "candidate_name": "Aisha Bello",
+      "resume_path": "resumes/resume_aisha_bello.docx",
+      "match_score": 15,
+      "failed_requirements": [
+        "5+ years Java (has 0 yrs Java)"
       ]
     },
     {
