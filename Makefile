@@ -16,7 +16,7 @@ AS_OF   := 2026-10-18
 RESUMES := resumes
 DB      := chroma_db
 
-.PHONY: all setup install index match test test-all notebook clean clean-index
+.PHONY: all setup install index match test test-all notebook video clean clean-index
 
 all: index match test notebook
 
@@ -54,6 +54,11 @@ test-all:
 notebook:
 	$(PYTHON) -m jupyter nbconvert --to notebook --execute --inplace \
 		--ExecutePreprocessor.timeout=1800 notebooks/experiments.ipynb
+
+# Rebuild the demo video from live output and the executed notebook's charts.
+# Run `make notebook` first if the charts are stale. Needs ffmpeg.
+video:
+	$(PYTHON) scripts/make_demo_video.py
 
 # Only ever removes generated artefacts, every path named explicitly.
 clean-index:

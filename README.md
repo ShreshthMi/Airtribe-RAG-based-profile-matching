@@ -29,7 +29,7 @@ make notebook       # execute the experiments notebook in place
 | Notebook with experimentation and analysis | [`notebooks/experiments.ipynb`](notebooks/experiments.ipynb), committed with outputs |
 | Retrieval accuracy metrics | notebook §5, `evaluation/metrics.py`, summarised below |
 | Latency metrics | notebook §3 (indexing) and §6 (query) |
-| Demo video | script and shot list in [`docs/demo_script.md`](docs/demo_script.md) |
+| Demo video | [`demo/demo.mp4`](demo/demo.mp4) - 3:48, captioned, rebuilt by `make video`; shot list in [`docs/demo_script.md`](docs/demo_script.md) |
 | Resumes loaded via the Milestone 1 tools | `resume_loader.py` over `milestone1_tools/fs_tools.py` ([provenance](milestone1_tools/PROVENANCE.md)) |
 
 Beyond the brief: a graded relevance set with a stated rubric
@@ -206,8 +206,23 @@ outputs/                          example matcher output
 tests/                            177 tests
 DATASET.md                        dataset card: provenance, coverage, edge cases
 docs/demo_script.md               demo video shot list
+scripts/make_demo_video.py        renders demo/demo.mp4 from live output + notebook charts
+demo/demo.mp4                     the 3:48 captioned demo video
 Makefile                          make setup / index / match / test / notebook
 ```
+
+## The demo video
+
+[`demo/demo.mp4`](demo/demo.mp4) is a 3 minute 48 second captioned walkthrough: the
+pipeline running, the matcher's output and reasoning, the rejected candidates with their
+reasons, the test suite, and the four charts from the notebook, including the ablation
+showing the retrieval half adds nothing on this evaluation set.
+
+It is **composed rather than screen-captured** - `scripts/make_demo_video.py` runs the real
+commands, reads the executed notebook's own chart images, lays the output out as frames and
+encodes them with ffmpeg. No frame contains hand-typed results, so the video cannot drift
+from the code the way a recorded take can, and `make video` regenerates it after any
+change. There is no voice track; every frame carries its own caption.
 
 ## Setup
 

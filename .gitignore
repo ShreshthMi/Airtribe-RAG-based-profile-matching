@@ -7,3 +7,7 @@ __pycache__/
 htmlcov/
 .ipynb_checkpoints/
 .DS_Store
+
+# demo video build artefacts; demo/demo.mp4 itself is committed
+demo/frames/
+demo/scenes.txt
