@@ -5,3 +5,9 @@ pytest-cov>=5.0
 jupyter>=1.0
 pandas>=2.2
 matplotlib>=3.8
+
+# Demo video tooling (scripts/make_demo_video.py, scripts/record_terminal_session.py).
+# Pillow arrives with matplotlib but is named here because these scripts import it
+# directly; pyte is the terminal emulator used to replay a recorded session.
+pillow>=10.0
+pyte>=0.8

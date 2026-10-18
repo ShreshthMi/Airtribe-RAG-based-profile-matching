@@ -29,7 +29,7 @@ make notebook       # execute the experiments notebook in place
 | Notebook with experimentation and analysis | [`notebooks/experiments.ipynb`](notebooks/experiments.ipynb), committed with outputs |
 | Retrieval accuracy metrics | notebook §5, `evaluation/metrics.py`, summarised below |
 | Latency metrics | notebook §3 (indexing) and §6 (query) |
-| Demo video | [`demo/demo.mp4`](demo/demo.mp4) - 3:48, captioned, rebuilt by `make video`; shot list in [`docs/demo_script.md`](docs/demo_script.md) |
+| Demo video | [`demo/demo_session.mp4`](demo/demo_session.mp4) - 3:48, a recorded terminal session; [`demo/demo.mp4`](demo/demo.mp4) is the same walkthrough as composed frames. Shot list in [`docs/demo_script.md`](docs/demo_script.md) |
 | Resumes loaded via the Milestone 1 tools | `resume_loader.py` over `milestone1_tools/fs_tools.py` ([provenance](milestone1_tools/PROVENANCE.md)) |
 
 Beyond the brief: a graded relevance set with a stated rubric
@@ -207,7 +207,9 @@ tests/                            177 tests
 DATASET.md                        dataset card: provenance, coverage, edge cases
 docs/demo_script.md               demo video shot list
 scripts/make_demo_video.py        renders demo/demo.mp4 from live output + notebook charts
-demo/demo.mp4                     the 3:48 captioned demo video
+demo/demo_session.mp4             the 3:48 demo, recorded as a terminal session
+demo/demo.mp4                     the same walkthrough as composed frames
+scripts/record_terminal_session.py  records the session and renders it
 Makefile                          make setup / index / match / test / notebook
 ```
 
@@ -224,7 +226,15 @@ encodes them with ffmpeg. No frame contains hand-typed results, so the video can
 from the code the way a recorded take can, and `make video` regenerates it after any
 change. There is no voice track; every frame carries its own caption.
 
-If a literal screen recording is wanted instead, `make screencast` produces one:
+[`demo/demo_session.mp4`](demo/demo_session.mp4) is the same walkthrough recorded as a
+**terminal session** rather than composed: `scripts/record_terminal_session.py` runs the
+demo under a pseudo-terminal, timestamps every chunk of output as it arrives, then replays
+it through a terminal emulator and draws it at 10 fps. Output therefore appears
+progressively at the speed it actually ran - results filling in line by line, and the index
+build visibly taking its twelve seconds. It needs no screen-recording permission and
+captures nothing but the session itself. This is the one to watch first.
+
+If a literal screen capture is wanted instead, `make screencast` produces one:
 `./demo_drive.sh auto` runs the same beats at a readable pace while `screencapture` records
 the display, and the notebook's chart cards are appended. It needs macOS Screen Recording
 permission for your terminal (the script checks, and says how to grant it), and it records
