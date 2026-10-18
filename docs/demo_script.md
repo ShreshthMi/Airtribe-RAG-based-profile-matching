@@ -43,7 +43,7 @@ python resume_rag.py --resumes resumes --db chroma_db --reset --as-of 2026-10-18
 Point at the per-candidate table and then the timing line.
 
 > "179 chunks, and the build is dominated by loading the embedding model once - the actual
-> work is under a second."
+> work is just over a second - and most of that is opening the database, not the data."
 
 ## 1:05-2:05 - Part B: matching
 
@@ -70,13 +70,19 @@ python job_matcher.py --jd-file job_descriptions/backend_engineer.txt \
 ```
 
 > "That JD names Java but never attaches a number to it, so I state the requirement
-> myself. One candidate passes."
+> myself. Five candidates pass, and the fifth is instructive - she is a product manager
+> who the parser credits with 5.8 years of Java because she mentions partnering with a
+> Java backend team. She passes the filter and the reasoning asserts the qualification.
+> The score buries her at 15, but the filter should not have let her through, and that is
+> a real defect, not a feature."
 
 ## 2:05-3:05 - Evaluation
 
 Switch to the notebook, section 5.
 
-> "Accuracy is measured against relevance labels written by hand before any run. Across
+> "Accuracy is measured against graded relevance labels - written by a separate Claude
+> session against a stated rubric, not by a human annotator, which is the main caveat on
+> every number here. Across
 > seven job descriptions: MRR 1.00 - the top hit is relevant every time - recall@10 0.98,
 > and nDCG@5 0.97."
 
@@ -90,8 +96,8 @@ Scroll to section 7a, the ablation chart.
 
 Scroll to section 6, latency.
 
-> "A query is a few tens of milliseconds, and almost all of that is embedding the job
-> description - the vector search itself is nearly free at this corpus size."
+> "A query is about 7 milliseconds, and nearly two thirds of that is embedding the job
+> description - the vector search itself is a fifth of it at this corpus size."
 
 ## 3:05-3:40 - Honesty and limits
 
@@ -110,7 +116,7 @@ Scroll to section 9, the error analysis, then section 10.
 
 ## 3:40-4:00 - Close
 
-> "Everything reproduces with `make all`: the index, both queries, 153 tests at 95%
+> "Everything reproduces with `make all`: the index, both queries, 154 fast tests at 95%
 > coverage, and the notebook. The labels, the dataset card and the limitations are all in
 > the repo."
 

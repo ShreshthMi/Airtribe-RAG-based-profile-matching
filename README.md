@@ -6,14 +6,16 @@ Part B embeds a job description, retrieves candidates, scores them 0-100 with a 
 semantic similarity and exact skill checks, applies hard must-have filters, and returns
 each match with the excerpts and reasoning behind it.
 
-No API keys and no network calls at query time: embeddings run locally with
-`sentence-transformers/all-MiniLM-L6-v2`.
+No API keys: embeddings run locally with `sentence-transformers/all-MiniLM-L6-v2`. The
+sentence-transformers backend does still contact the HuggingFace hub on start-up to
+revalidate the cached model, so a query is not network-free by default; set
+`HF_HUB_OFFLINE=1` and it makes no network calls at all.
 
 ```bash
 make setup          # uv venv on Python 3.12 + install
 make index          # Part A: build the index from resumes/
 make match          # Part B: run the documented queries into outputs/
-make test           # 154 tests, 95% line coverage
+make test           # 177 tests, 95% line coverage
 make notebook       # execute the experiments notebook in place
 ```
 
@@ -30,7 +32,7 @@ make notebook       # execute the experiments notebook in place
 | Demo video | script and shot list in [`docs/demo_script.md`](docs/demo_script.md) |
 | Resumes loaded via the Milestone 1 tools | `resume_loader.py` over `milestone1_tools/fs_tools.py` ([provenance](milestone1_tools/PROVENANCE.md)) |
 
-Beyond the brief: a hand-labelled relevance set with a stated rubric
+Beyond the brief: a graded relevance set with a stated rubric
 (`job_descriptions/relevance_labels.json`), ablations that test whether each design
 choice earns its place, a separate evaluation of the must-have filter, an error analysis,
 a test suite, and a limitations section that says plainly why the headline numbers are an
@@ -38,8 +40,10 @@ upper bound.
 
 ## Results
 
-Measured over 43 resumes and 7 job descriptions with hand-labelled relevance, MiniLM
-embeddings, reference date 2026-10-18. Reproduce with `make notebook`.
+Measured over 43 resumes and 7 job descriptions against the graded relevance labels in
+`job_descriptions/relevance_labels.json`, MiniLM embeddings, reference date 2026-10-18.
+Read the provenance of those labels under [Evaluation](#evaluation) before reading the
+numbers - they were not produced by a human annotator. Reproduce with `make notebook`.
 
 **Retrieval accuracy** (macro-averaged across the 7 job descriptions; relevance = graded
 label >= 1; `precision@k` divides by k, so its ceiling is below 1 when a JD has fewer
@@ -47,54 +51,113 @@ than k relevant candidates):
 
 | P@1 | P@3 | P@5 | R@5 | R@10 | MRR | nDCG@5 | nDCG@10 | MAP |
 |---|---|---|---|---|---|---|---|---|
-| 1.00 | 0.95 | 0.80 | 0.87 | 0.98 | 1.00 | 0.968 | 0.982 | 0.93 |
+| 1.00 | 1.00 | 0.80 | 0.87 | 0.98 | 1.00 | 0.972 | 0.986 | 0.933 |
 
-The top-ranked candidate is relevant for every job description, and 98% of relevant
-candidates reach the top 10. One relevant candidate out of 33 is missed overall; the
-notebook explains which and why.
+**Read the next section before quoting any of these.** On this evaluation set a far simpler
+system - exact skill matching plus BM25, with no embeddings and no vector store at all -
+scores identically. These figures measure the pipeline end to end; they are not evidence
+that the retrieval architecture contributes to the result.
 
-**The hybrid score earns its complexity.** Ablating the components against the same
-index and labels:
+The top-ranked candidate is relevant for every job description. One relevant candidate
+out of 33 is missed overall - 32 of 33, or 97%, reach the top 10; the 0.98 in the table is
+the macro average of per-JD recall@10, which is a different quantity and is not a
+candidate count. The notebook explains which candidate is missed and why.
 
-| Scoring | nDCG@5 | P@1 | R@10 |
-|---|---|---|---|
-| **Hybrid (production: .5 semantic / .3 skills / .1 BM25 / .1 experience)** | **0.968** | **1.00** | **0.98** |
-| Semantic similarity only | 0.860 | 0.86 | 0.87 |
-| Critical-skill coverage only | 0.958 | 1.00 | 0.96 |
-| BM25 only | 0.967 | 1.00 | 0.96 |
-| Experience fit only | 0.145 | 0.14 | 0.26 |
+**Does the retrieval half earn its place? On this evaluation set, no.** Ablating the
+scoring components against the same index and labels (notebook §7a):
 
-Dense retrieval alone puts an irrelevant candidate first for one job description in
-seven: MiniLM rates "ML *platform* engineer" as very close to "ML engineer", and only an
-exact check against the JD's required skills separates them. BM25 alone scores well
-because this corpus shares literal skill tokens between resumes and JDs - a property of
-the dataset, not a general result, and the notebook says so.
+| Scoring | nDCG@5 | P@1 | P@3 | R@10 | MAP |
+|---|---|---|---|---|---|
+| Production (.5 semantic / .3 skills / .1 BM25 / .1 experience) | 0.972 | 1.00 | 1.00 | 0.98 | 0.933 |
+| **No semantic weight at all (0 / .6 / .2 / .2)** | **0.972** | **1.00** | **1.00** | **0.98** | **0.933** |
+| No semantic weight (0 / .5 / .3 / .2) | 0.972 | 1.00 | 1.00 | 0.98 | 0.935 |
+| BM25 only | 0.967 | 1.00 | 0.90 | 0.98 | 0.927 |
+| Critical-skill coverage only | 0.958 | 1.00 | 0.95 | 0.96 | 0.917 |
+| Semantic similarity only | 0.862 | 0.86 | 0.90 | 0.87 | 0.864 |
+| Experience fit only | 0.145 | 0.14 | 0.14 | 0.26 | 0.183 |
+
+A blend with **zero** semantic weight ties production on every metric. Deleting the
+embeddings and the vector store - the whole of Part A's reason for existing - would cost
+nothing measurable here. An earlier version of this README claimed "the hybrid score earns
+its complexity" on the strength of beating semantic-only; that was the wrong comparison,
+and the grid it came from contained no zero-semantic configuration, so the claim had never
+been tested. It is withdrawn.
+
+**Why, and the experiment that isolates it.** These seven job descriptions name the
+required skills in the same words the resumes use - "PyTorch", "Kafka", "React" - because
+both sides were written for this assignment. Exact matching therefore has nothing left for
+embeddings to add. Real job descriptions are written by people who do not know which words
+a candidate chose, which is the condition dense retrieval exists for.
+
+Notebook §7d restates all seven roles with **no literal skill token** - a constraint
+checked mechanically, by asserting `extract_skills()` finds nothing in them - and holds the
+relevance labels fixed, since the roles are unchanged:
+
+| | literal JDs | paraphrased JDs |
+|---|---|---|
+| Production | 0.972 | 0.922 |
+| No semantic weight | 0.972 | 0.831 |
+| Semantic only | 0.862 | 0.911 |
+| **what the dense half adds** | **+0.000** | **+0.091 nDCG@5, +0.143 MAP** |
+
+So the architecture is not dead weight - it has a precondition, and that precondition is a
+query that does not quote the corpus. The shipped evaluation set does not meet it, so on
+the shipped set the design is unjustified by its own numbers. The honest conclusion is
+about the dataset: **job descriptions written independently of the resumes are the single
+change that would most improve this evaluation**, and nothing else on the "what I would do
+next" list comes close.
+
+Caveat on §7d: I wrote the paraphrases, so I authored both the query and the system under
+test. The no-literal-token constraint bounds how much that can bias the result but does not
+remove it, and the paraphrases are deliberately harder than a typical posting, so +0.091 is
+an upper bound rather than a typical case.
 
 **Must-have filtering** removed no labelled-relevant candidate for any of the 7 job
 descriptions (recall after filtering 1.00). A skill-scoped requirement filters usefully
 ("3+ years React" cuts 43 candidates to 6 and lifts precision from ~0.09 to 0.67); a bare
-"N+ years experience" requirement keeps 38-42 of 43 and barely filters at all.
+"N+ years experience" requirement keeps between 34 and 42 of 43 and barely filters at
+all.
 
-**Latency** (M-series laptop, CPU only, 43 resumes / 179 chunks):
+**Latency.** Measured on an M-series laptop, CPU only, 43 resumes / 179 chunks. These are
+machine-specific: reproduce them with `make notebook` rather than expecting these exact
+figures elsewhere. Every phase is timed directly - nothing is derived by subtracting one
+timed run from another - and both the indexing and query cells assert that the phases
+account for essentially all of the wall clock, so an unattributed remainder cannot hide.
 
-| | |
+| Index build (notebook §3) | |
 |---|---|
-| Index build, total | 14.1 s |
-| of which loading MiniLM once | 12.3 s |
-| actual load + parse + embed + store | 1.25 s (29 ms per resume, 7 ms per chunk) |
-| Query, end to end | 8 ms median, 11 ms worst p95 |
-| of which embedding the JD | 53% |
-| vector search / BM25 / scoring | 38% / 2% / 7% |
+| Total | 12.8 s |
+| of which loading MiniLM, once per process | 11.5 s (90%) |
+| everything else | 1.29 s = 30 ms per resume, 7 ms per chunk |
+| breakdown: open ChromaDB / embed / store / read+parse | 0.64 s / 0.43 s / 0.15 s / 0.06 s |
+| unattributed | 0.008 s (0.1%) |
 
-Indexing is model-load bound, not data bound, so a long-lived process should hold one
-`Embedder` rather than constructing one per request.
+| Query (notebook §6) | |
+|---|---|
+| Median end to end | 7.2 ms |
+| Worst p95 across the 7 JDs | 11.0 ms |
+| Embedding the JD | 64.8% |
+| Vector search | 18.6% |
+| Scoring and explanation | 8.5% |
+| BM25 | 2.9% |
+| Parsing the JD | 2.8% |
 
-Profiling the query *by phase* paid for itself: the first run showed the residual scoring
-phase at 66% of latency, which is impossible for a few arithmetic operations per
-candidate. The cause was `extract_skills(jd)` being called inside the per-candidate loop,
-re-running ~80 regex patterns over the job description 43 times per query. Hoisting it cut
-the median query from 22 ms to 8 ms, and a regression test now asserts the JD is scanned
-once rather than once per candidate. The end-to-end number alone looked fine; the breakdown is what found it.
+Indexing is model-load bound rather than data bound, so a long-lived process should hold
+one `Embedder` instead of constructing one per request. A query is dominated by embedding
+the job description, so the useful optimisation is to embed fewer passages or cache the JD
+embedding - not to tune the vector store.
+
+**Profiling by phase paid for itself, after the profile itself was fixed.** The first
+breakdown attributed 66% of query time to scoring, which is impossible for a few
+arithmetic operations per candidate - and it was an artefact of the method: phases were
+derived by subtracting separately timed runs from the end-to-end time, which produced
+negative durations for whole phases. With direct instrumentation in place, the real defect
+showed up: `extract_skills(jd)` was being called inside the per-candidate loop, sweeping
+~80 compiled patterns over the job description once per candidate, 43 times per query.
+Notebook §6 now measures the fix as a live A/B by reinstating exactly that work: it costs
+**21.5 ms at p50, a 3.3x difference**. A regression test asserts the JD is scanned once
+rather than once per candidate. The end-to-end number looked perfectly acceptable at ~22
+ms; only a *sound* breakdown found it.
 
 ## Architecture
 
@@ -134,11 +197,13 @@ resume_loader.py                  the only adapter over the Milestone 1 file too
 milestone1_tools/                 verbatim fs_tools.py + extractors.py + PROVENANCE.md
 evaluation/metrics.py             precision@k, recall@k, MRR, MAP, nDCG@k
 evaluation/harness.py             label loading and validation, latency, filter scoring
+evaluation/paraphrased_jds/       the same 7 roles restated with no literal skill tokens,
+                                  used by notebook 7d to isolate dense retrieval
 notebooks/experiments.ipynb       experiments, metrics, ablations, error analysis
 resumes/                          43 resumes in 4 formats
 job_descriptions/                 7 JDs + relevance_labels.json (rubric inline)
 outputs/                          example matcher output
-tests/                            154 tests
+tests/                            177 tests
 DATASET.md                        dataset card: provenance, coverage, edge cases
 docs/demo_script.md               demo video shot list
 Makefile                          make setup / index / match / test / notebook
@@ -154,10 +219,18 @@ uv venv --python 3.12 .venv
 VIRTUAL_ENV=.venv uv pip install -r requirements-dev.txt   # or requirements.txt to just run it
 ```
 
-The install is around 1 GB, almost all of it PyTorch. If `sentence-transformers` is
-absent, `Embedder` falls back to ChromaDB's bundled ONNX export of the same MiniLM model,
-so `pip install chromadb rank-bm25 pypdf python-docx` is enough to run everything - a
-test covers that fallback.
+`requirements.txt` keeps `>=` ranges so the project installs on other platforms.
+`requirements-lock.txt` pins every version of the environment the reported numbers were
+measured in (macOS arm64, CPython 3.12.14) - install that one to reproduce the
+measurements exactly rather than approximately.
+
+The install is around 1 GB on macOS arm64, almost all of it PyTorch; on Linux with CUDA
+wheels the same environment is several times larger (one measured Linux install came to
+6.1 GB). If `sentence-transformers` is absent, `Embedder` falls back to ChromaDB's ONNX
+export of the same MiniLM model, so `pip install chromadb rank-bm25 pypdf python-docx` is
+enough to run everything - a test covers that fallback. Note that ChromaDB downloads that
+ONNX model on first use rather than shipping it, so the light install is not offline on
+its first run.
 
 ## Run
 
@@ -199,7 +272,7 @@ python job_matcher.py --jd-file job_descriptions/backend_engineer.txt \
 3. **Metadata extraction.**
    - *Name*: a `Name:` field, else the first short header line; ALL-CAPS names are
      normalised, mixed-case names left alone.
-   - *Skills*: matched against ~80 canonical skills with aliases (`k8s` to Kubernetes,
+   - *Skills*: matched against 73 canonical skills with aliases (`k8s` to Kubernetes,
      `sklearn` to scikit-learn). Word-boundary aware, so "Swiftcart" is not Swift and
      "JavaScript" is not Java. Interests, hobbies and references sections are chunked and
      retrievable but excluded from skill extraction, because a hobby is not a competency.
@@ -239,9 +312,14 @@ python job_matcher.py --jd-file job_descriptions/backend_engineer.txt \
    `filtered_out` **with the reason**, so a rejection is always visible and contestable.
    A `--must-have` that cannot be parsed is reported loudly rather than ignored, since a
    silently dropped filter is worse than a rejected one.
-5. **Reasoning** names matched and missing critical skills, the sections closest to the
-   JD with their similarity, experience against the requirement, education, and which
-   must-haves were met. `relevant_excerpts` are the top-matching chunks, tagged by
+5. **Reasoning** opens with the score, then names matched and missing critical skills,
+   the sections closest to the JD with their similarity, experience against the
+   requirement, education, and which must-haves were met. It deliberately states **no
+   verdict**: earlier versions opened with "Strong match" / "Good match" on score
+   thresholds that were never calibrated against the relevance labels, and on this
+   evaluation set 37 of the 268 candidate/JD pairs a human would call irrelevant were
+   described that way - including two DevOps engineers with no ML background for the ML
+   role. The score ranks candidates against one job description; it does not grade them. `relevant_excerpts` are the top-matching chunks, tagged by
    section - the retrieved evidence, not a summary of it.
 
 ### Output
@@ -257,8 +335,24 @@ assignment's schema and nothing else.
 
 `job_descriptions/relevance_labels.json` grades candidates per JD as 2 ("would
 shortlist"), 1 ("plausible") or unlisted (0), with the rubric stated in the file and
-per-JD *hard negatives* - candidates built to be traps - for error analysis. **The labels
-were fixed before any matcher run and are not edited to fit the system's output.**
+per-JD *hard negatives* - candidates built to be traps - for error analysis.
+
+**Who labelled these, and what that costs.** The labels were written by a Claude session
+working from the resume and job-description text against the rubric in the file - a
+single AI annotator, not a human one, and not independently reviewed. This is the biggest
+limitation on every accuracy number in this repository, because the corpus, the labels
+and the system all originate from the same project. Treat the figures as an internal
+consistency check, not as external validation.
+
+What I can and cannot support about their independence:
+
+- *Verified*: the label file was committed once and never edited afterwards, so the labels
+  were not retuned to flatter a result.
+- *Not supported*: that the labels predate every matcher run. Sample matcher output for
+  two of the seven job descriptions was already in the repository before the label file
+  existed, so for those two I cannot rule out that seeing output influenced the labelling.
+  An earlier version of this README claimed the labels were "fixed before any matcher run"
+  and that claim was not checkable; it has been withdrawn.
 
 Two measurements are kept deliberately apart:
 
@@ -275,7 +369,7 @@ with no relevant candidate (which makes recall undefined).
 ## Testing
 
 ```bash
-make test        # 154 tests, ~7s, 95% line coverage
+make test        # 177 tests, ~8s, 95% line coverage
 make test-all    # also the 3 tests that load the real MiniLM model
 ```
 
@@ -289,9 +383,13 @@ distinct ids; a resume with no headings is still retrievable.
 
 ## Design decisions and trade-offs
 
-- **Section-aware chunking over a fixed window.** A fixed window splits mid-role and
-  mixes education into experience, which makes an excerpt harder to justify to a
-  recruiter. The notebook measures both.
+- **Section-aware chunking over a fixed window.** Measured both ways in notebook §7b, and
+  the honest result is narrower than the intuition: on the shipped job descriptions
+  whole-document chunking scores within 0.003 nDCG@5 of section-aware, so the choice is
+  **not** justified by those numbers. It is worth about 0.05 nDCG@5 once the query is
+  paraphrased (§7d), and it costs nothing either way. The remaining argument for it is
+  one the metrics cannot score: an excerpt tagged `[Experience]` is easier to justify to a
+  recruiter than a window that starts mid-sentence.
 - **Hybrid scoring over pure vector search.** The single clearest experimental result
   here: embeddings cannot tell "ML platform engineer" from "ML engineer", and an exact
   skill check can.
@@ -301,16 +399,29 @@ distinct ids; a resume with no headings is still retrievable.
   years estimate rejects someone, which is why `filtered_out` always carries its reason.
 - **Vendored Milestone 1 tools rather than a path dependency.** The assignment ships as
   one self-contained repository; hashes in `PROVENANCE.md` are re-checked at index time
-  so the "verbatim" claim is enforced, and `MILESTONE1_TOOLS_DIR` points at a live
-  checkout when wanted.
+  so drift is reported rather than silent - though note this is a warning, not an
+  enforcement: the expected hashes are hard-coded in `resume_loader.py` and a mismatch
+  prints to stderr without failing the build. It also cannot prove the copies are genuine
+  on its own, since the files and the hashes live in the same repository; the independent
+  check is to hash them against the public Milestone 1 repository at commit `fc7cf0c`.
+  `MILESTONE1_TOOLS_DIR` points at a live checkout when wanted.
 - **A pinned reference date.** Experience derived from "Present" grows with the calendar,
   so without `--as-of` every reported metric would drift. One candidate in this corpus
   crosses a 5-year Python threshold in December 2027 purely by the passage of time.
 - **Extractive reasoning rather than generated prose.** `relevant_excerpts` are the
   retrieved chunks themselves and `reasoning` is assembled from measured facts, so every
-  statement in the output is traceable to the index. An LLM-written paragraph would read
-  better and could hallucinate a qualification; for a decision that affects someone's
-  job application, traceability wins.
+  statement in the output is traceable to a specific chunk and a specific extracted
+  number. **This buys traceability, not correctness, and an earlier version of this README
+  overclaimed by saying such reasoning "could not hallucinate a qualification".** It can,
+  because the extracted number can itself be wrong: the product manager in
+  `resumes/resume_aisha_bello.docx` is credited with 5.8 years of Java on the strength of
+  one sentence, "Partnered with the Java backend team". She passes
+  `--must-have "5+ years Java"`, appears in `top_matches`, and the reasoning states
+  "Must-haves met: 5+ years Java (5.8 yrs Java)" - a qualification she does not have,
+  asserted in the output. What extractive reasoning does guarantee is that the claim is
+  auditable: the sentence it came from is in the index and the per-skill figure is in the
+  registry, so the error is findable. A generated paragraph would have produced the same
+  false claim with nothing to trace it to.
 - **A marginally better weighting was found and not adopted.** `.6` semantic / `.4`
   skills edges the production weights on nDCG@5. With 7 queries that is one or two rank
   swaps and there is no held-out split, so adopting it would mean reporting an accuracy
@@ -334,9 +445,12 @@ I would do next.
 
 ## Swapping components
 
-- **Embedding model**: `--model` on `resume_rag.py`. `BAAI/bge-small-en-v1.5` was
-  compared in notebook §7c and is marginally better (nDCG@5 0.972 against 0.968, MAP
-  0.935 against 0.928) for a larger model download; MiniLM remains the default. The
+- **Embedding model**: `--model` on `resume_rag.py`. `BAAI/bge-small-en-v1.5` was compared
+  in notebook §7c and is level on nDCG@5 (0.972) with marginally better MAP (0.935 against
+  0.933) for a larger download; MiniLM remains the default. Note the comparison is
+  confounded: `SIM_FLOOR`/`SIM_CEIL` in `job_matcher.py` are hand-set for MiniLM's
+  similarity distribution, so another model is scored through a band calibrated for this
+  one. The
   matcher reads the model from the registry and warns if you query with a different one,
   since similarities are not comparable across models.
 - **Chunking strategy**: pass any `chunker` to `build_index` - see

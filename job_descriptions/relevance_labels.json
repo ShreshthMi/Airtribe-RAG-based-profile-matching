@@ -1,5 +1,5 @@
 {
-  "description": "Hand-labelled relevance of each resume to each job description, used to score retrieval accuracy. Labels were written from the resume and JD text before running the matcher, so they do not reflect its output.",
+  "description": "Graded relevance of each resume to each job description, used to score retrieval accuracy. Written by a Claude session from the resume and JD text against the rubric below - a single AI annotator, not a human one, and not independently reviewed. The file was committed once and never edited afterwards. It cannot be claimed that the labels predate every matcher run: sample output for two of the seven job descriptions was already in the repository before this file existed.",
   "rubric": {
     "2": "Strong match: meets every stated minimum (years and required stack) and the core of the role.",
     "1": "Partial match: meets the stated minimum years and much of the required stack, or works in an adjacent role a recruiter would still shortlist.",
@@ -8,84 +8,267 @@
   "usage": "Treat grade >= 1 as relevant for precision@k, recall@k and MRR, and use the grades themselves for nDCG. Keys are job_descriptions/<key>.txt; resume_path matches the resume_path field the matcher returns.",
   "labels": {
     "senior_ml_engineer": [
-      {"resume_path": "resumes/priya_sharma.md", "grade": 2, "why": "11 years of Python ML; built a RAG assistant with LangChain and Pinecone; PyTorch, NLP, Kubernetes and AWS."},
-      {"resume_path": "resumes/vikram_iyer.md", "grade": 2, "why": "NLP PhD; 6 years fine-tuning LLMs in PyTorch and building RAG with FAISS on AWS."},
-      {"resume_path": "resumes/ananya_rao.md", "grade": 2, "why": "7 years of Python NLP; RAG assistant on Weaviate, LLM fine-tuning, Docker and Kubernetes on AWS."},
-      {"resume_path": "resumes/john_doe.txt", "grade": 1, "why": "8 years of Python and PyTorch ML in production, but computer vision rather than NLP, LLMs or RAG."},
-      {"resume_path": "resumes/mei_lin.md", "grade": 1, "why": "8 years of Python and PyTorch deep learning (PhD research plus industry); computer vision, no NLP or LLM work."},
-      {"resume_path": "resumes/tomas_herrera.md", "grade": 1, "why": "7 years of Python ML with PyTorch, Spark, Kubernetes and AWS; recommendation systems, no NLP or LLM work."},
-      {"resume_path": "resumes/resume_david_kim.txt", "grade": 1, "why": "Production ML engineer with PyTorch, Hugging Face and MLflow; no stated LLM, RAG or vector database experience."}
+      {
+        "resume_path": "resumes/priya_sharma.md",
+        "grade": 2,
+        "why": "11 years of Python ML; built a RAG assistant with LangChain and Pinecone; PyTorch, NLP, Kubernetes and AWS."
+      },
+      {
+        "resume_path": "resumes/vikram_iyer.md",
+        "grade": 2,
+        "why": "NLP PhD; 6 years fine-tuning LLMs in PyTorch and building RAG with FAISS on AWS."
+      },
+      {
+        "resume_path": "resumes/ananya_rao.md",
+        "grade": 2,
+        "why": "7 years of Python NLP; RAG assistant on Weaviate, LLM fine-tuning, Docker and Kubernetes on AWS."
+      },
+      {
+        "resume_path": "resumes/john_doe.txt",
+        "grade": 1,
+        "why": "8 years of Python and PyTorch ML in production, but computer vision rather than NLP, LLMs or RAG."
+      },
+      {
+        "resume_path": "resumes/mei_lin.md",
+        "grade": 1,
+        "why": "8 years of Python and PyTorch deep learning (PhD research plus industry); computer vision, no NLP or LLM work."
+      },
+      {
+        "resume_path": "resumes/tomas_herrera.md",
+        "grade": 1,
+        "why": "7 years of Python ML with PyTorch, Spark, Kubernetes and AWS; recommendation systems, no NLP or LLM work."
+      },
+      {
+        "resume_path": "resumes/resume_david_kim.txt",
+        "grade": 1,
+        "why": "Production ML engineer with PyTorch, Hugging Face and MLflow; no stated LLM, RAG or vector database experience."
+      }
     ],
     "backend_engineer": [
-      {"resume_path": "resumes/arjun_mehta.md", "grade": 2, "why": "11 years of backend; Java and Spring Boot microservices with Kafka, Redis, Kubernetes on AWS and Terraform."},
-      {"resume_path": "resumes/oluwaseun_adeyemi.md", "grade": 2, "why": "9 years of Java and Spring Boot payments microservices with Kafka, Redis, Kubernetes on AWS and Terraform."},
-      {"resume_path": "resumes/resume_marcus_chen.pdf", "grade": 1, "why": "Java and Spring Boot microservices with Kafka and Kubernetes for 9 years, but no Redis or AWS."},
-      {"resume_path": "resumes/george_mathews.txt", "grade": 1, "why": "Deep Java, Spring Boot and Kafka background on AWS and Kubernetes, but an engineering manager for the last 5 years."}
+      {
+        "resume_path": "resumes/arjun_mehta.md",
+        "grade": 2,
+        "why": "11 years of backend; Java and Spring Boot microservices with Kafka, Redis, Kubernetes on AWS and Terraform."
+      },
+      {
+        "resume_path": "resumes/oluwaseun_adeyemi.md",
+        "grade": 2,
+        "why": "9 years of Java and Spring Boot payments microservices with Kafka, Redis, Kubernetes on AWS and Terraform."
+      },
+      {
+        "resume_path": "resumes/resume_marcus_chen.pdf",
+        "grade": 1,
+        "why": "Java and Spring Boot microservices with Kafka and Kubernetes for 9 years, but no Redis or AWS."
+      },
+      {
+        "resume_path": "resumes/george_mathews.txt",
+        "grade": 1,
+        "why": "Deep Java, Spring Boot and Kafka background on AWS and Kubernetes, but an engineering manager for the last 5 years."
+      }
     ],
     "data_engineer": [
-      {"resume_path": "resumes/rahul_verma.md", "grade": 2, "why": "9 years; PySpark, Airflow, Kafka, Snowflake and dbt on Azure and AWS."},
-      {"resume_path": "resumes/sven_larsen.md", "grade": 2, "why": "9 years; Spark and Kafka streaming into BigQuery, Airflow, dbt, Python and SQL."},
-      {"resume_path": "resumes/diego_fernandez.txt", "grade": 2, "why": "5 years; PySpark, Kafka, Airflow, Snowflake, dbt, Python and SQL."},
-      {"resume_path": "resumes/hannah_brooks.md", "grade": 1, "why": "Analytics engineer with SQL, dbt, Snowflake, Airflow and Python, but no Spark or Kafka."}
+      {
+        "resume_path": "resumes/rahul_verma.md",
+        "grade": 2,
+        "why": "9 years; PySpark, Airflow, Kafka, Snowflake and dbt on Azure and AWS."
+      },
+      {
+        "resume_path": "resumes/sven_larsen.md",
+        "grade": 2,
+        "why": "9 years; Spark and Kafka streaming into BigQuery, Airflow, dbt, Python and SQL."
+      },
+      {
+        "resume_path": "resumes/diego_fernandez.txt",
+        "grade": 2,
+        "why": "5 years; PySpark, Kafka, Airflow, Snowflake, dbt, Python and SQL."
+      },
+      {
+        "resume_path": "resumes/hannah_brooks.md",
+        "grade": 1,
+        "why": "Analytics engineer with SQL, dbt, Snowflake, Airflow and Python, but no Spark or Kafka."
+      }
     ],
     "frontend_engineer": [
-      {"resume_path": "resumes/emily_chen.txt", "grade": 2, "why": "7 years of React and TypeScript; component library, GraphQL, Jest and Figma."},
-      {"resume_path": "resumes/resume_john_smith.docx", "grade": 2, "why": "React, TypeScript and Next.js since 2020; Jest, Playwright, WCAG and Figma."},
-      {"resume_path": "resumes/amara_okonkwo.md", "grade": 2, "why": "4 years of React and TypeScript; WCAG audits, Jest, Playwright and Figma."},
-      {"resume_path": "resumes/kwame_mensah.txt", "grade": 1, "why": "Full-stack, mostly Node.js APIs, with React and TypeScript front ends and Jest."}
+      {
+        "resume_path": "resumes/emily_chen.txt",
+        "grade": 2,
+        "why": "7 years of React and TypeScript; component library, GraphQL, Jest and Figma."
+      },
+      {
+        "resume_path": "resumes/resume_john_smith.docx",
+        "grade": 2,
+        "why": "React, TypeScript and Next.js since 2020; Jest, Playwright, WCAG and Figma."
+      },
+      {
+        "resume_path": "resumes/amara_okonkwo.md",
+        "grade": 2,
+        "why": "4 years of React and TypeScript; WCAG audits, Jest, Playwright and Figma."
+      },
+      {
+        "resume_path": "resumes/kwame_mensah.txt",
+        "grade": 1,
+        "why": "Full-stack, mostly Node.js APIs, with React and TypeScript front ends and Jest."
+      }
     ],
     "devops_sre": [
-      {"resume_path": "resumes/maria_garcia.txt", "grade": 2, "why": "8 years of platform work; Kubernetes, Docker, Terraform, AWS and GCP, CI/CD, Linux, Python and Prometheus."},
-      {"resume_path": "resumes/resume_elena_rodriguez.docx", "grade": 2, "why": "SRE since 2016; Kubernetes, Terraform, Go and Python, Prometheus and Grafana on AWS and GCP."},
-      {"resume_path": "resumes/omar_haddad.md", "grade": 2, "why": "8 years of SRE; GKE Kubernetes, Terraform, Go and Python, Prometheus and Grafana, CI/CD."},
-      {"resume_path": "resumes/li_wei.txt", "grade": 1, "why": "ML platform engineer on Kubernetes with Docker, Terraform, CI/CD on AWS and GCP; no monitoring stack, ML focus."},
-      {"resume_path": "resumes/rebecca_stone.txt", "grade": 1, "why": "Cloud architect with AWS, Azure, Terraform, Kubernetes and CI/CD, but consulting and design rather than hands-on operations."}
+      {
+        "resume_path": "resumes/maria_garcia.txt",
+        "grade": 2,
+        "why": "8 years of platform work; Kubernetes, Docker, Terraform, AWS and GCP, CI/CD, Linux, Python and Prometheus."
+      },
+      {
+        "resume_path": "resumes/resume_elena_rodriguez.docx",
+        "grade": 2,
+        "why": "SRE since 2016; Kubernetes, Terraform, Go and Python, Prometheus and Grafana on AWS and GCP."
+      },
+      {
+        "resume_path": "resumes/omar_haddad.md",
+        "grade": 2,
+        "why": "8 years of SRE; GKE Kubernetes, Terraform, Go and Python, Prometheus and Grafana, CI/CD."
+      },
+      {
+        "resume_path": "resumes/li_wei.txt",
+        "grade": 1,
+        "why": "ML platform engineer on Kubernetes with Docker, Terraform, CI/CD on AWS and GCP; no monitoring stack, ML focus."
+      },
+      {
+        "resume_path": "resumes/rebecca_stone.txt",
+        "grade": 1,
+        "why": "Cloud architect with AWS, Azure, Terraform, Kubernetes and CI/CD, but consulting and design rather than hands-on operations."
+      }
     ],
     "data_scientist": [
-      {"resume_path": "resumes/sara_kim.txt", "grade": 2, "why": "6 years; Python, R and SQL, statistics and A/B testing, scikit-learn models, Tableau; M.S. Statistics."},
-      {"resume_path": "resumes/resume_priya_sharma.pdf", "grade": 2, "why": "Data scientist since 2019; Python, pandas, scikit-learn, A/B testing, causal inference, Tableau; M.S. Statistics."},
-      {"resume_path": "resumes/fatima_zahra.txt", "grade": 2, "why": "8 years; experimentation platform, A/B tests, scikit-learn models, SQL, Tableau; M.Sc. Applied Statistics."},
-      {"resume_path": "resumes/priya_sharma.md", "grade": 1, "why": "ML engineer now, but started as an analyst doing statistical modelling and A/B testing; strong Python, SQL and scikit-learn."},
-      {"resume_path": "resumes/tomas_herrera.md", "grade": 1, "why": "ML engineer who spent a year as a data scientist on A/B tests and statistical models; Python and SQL."}
+      {
+        "resume_path": "resumes/sara_kim.txt",
+        "grade": 2,
+        "why": "6 years; Python, R and SQL, statistics and A/B testing, scikit-learn models, Tableau; M.S. Statistics."
+      },
+      {
+        "resume_path": "resumes/resume_priya_sharma.pdf",
+        "grade": 2,
+        "why": "Data scientist since 2019; Python, pandas, scikit-learn, A/B testing, causal inference, Tableau; M.S. Statistics."
+      },
+      {
+        "resume_path": "resumes/fatima_zahra.txt",
+        "grade": 2,
+        "why": "8 years; experimentation platform, A/B tests, scikit-learn models, SQL, Tableau; M.Sc. Applied Statistics."
+      },
+      {
+        "resume_path": "resumes/priya_sharma.md",
+        "grade": 1,
+        "why": "ML engineer now, but started as an analyst doing statistical modelling and A/B testing; strong Python, SQL and scikit-learn."
+      },
+      {
+        "resume_path": "resumes/tomas_herrera.md",
+        "grade": 1,
+        "why": "ML engineer who spent a year as a data scientist on A/B tests and statistical models; Python and SQL."
+      }
     ],
     "mobile_engineer": [
-      {"resume_path": "resumes/resume_sofia_novak.txt", "grade": 2, "why": "Native iOS and Android since 2018; Swift, SwiftUI, Kotlin, Jetpack Compose, GraphQL, XCTest and Espresso."},
-      {"resume_path": "resumes/lukas_becker.txt", "grade": 2, "why": "5 years of native mobile; ships both apps in Swift and SwiftUI and Kotlin and Jetpack Compose, with XCTest and Espresso."},
-      {"resume_path": "resumes/daniel_cohen.md", "grade": 1, "why": "8 years of Swift, SwiftUI and iOS with GraphQL and XCTest, but no Android or Kotlin."},
-      {"resume_path": "resumes/priyanka_nair.txt", "grade": 1, "why": "5 years of Kotlin, Jetpack Compose and Android with Espresso, but no iOS or Swift."}
+      {
+        "resume_path": "resumes/resume_sofia_novak.txt",
+        "grade": 2,
+        "why": "Native iOS and Android since 2018; Swift, SwiftUI, Kotlin, Jetpack Compose, GraphQL, XCTest and Espresso."
+      },
+      {
+        "resume_path": "resumes/lukas_becker.txt",
+        "grade": 2,
+        "why": "5 years of native mobile; ships both apps in Swift and SwiftUI and Kotlin and Jetpack Compose, with XCTest and Espresso."
+      },
+      {
+        "resume_path": "resumes/daniel_cohen.md",
+        "grade": 1,
+        "why": "8 years of Swift, SwiftUI and iOS with GraphQL and XCTest, but no Android or Kotlin."
+      },
+      {
+        "resume_path": "resumes/priyanka_nair.txt",
+        "grade": 1,
+        "why": "5 years of Kotlin, Jetpack Compose and Android with Espresso, but no iOS or Swift."
+      }
     ]
   },
   "hard_negatives": {
     "senior_ml_engineer": [
-      {"resume_path": "resumes/karan_malhotra.txt", "why": "RAG, LangChain and LLM skills match the JD, but 3 years against a 5+ years Python minimum."},
-      {"resume_path": "resumes/aisha_khan.md", "why": "ML and NLP work in Python, but under 4 years."},
-      {"resume_path": "resumes/li_wei.txt", "why": "ML platform engineer, not a modeller; Python appears only in the latest role."}
+      {
+        "resume_path": "resumes/karan_malhotra.txt",
+        "why": "RAG, LangChain and LLM skills match the JD, but 3 years against a 5+ years Python minimum."
+      },
+      {
+        "resume_path": "resumes/aisha_khan.md",
+        "why": "ML and NLP work in Python, but under 4 years."
+      },
+      {
+        "resume_path": "resumes/li_wei.txt",
+        "why": "ML platform engineer, not a modeller; Python appears only in the latest role."
+      }
     ],
     "backend_engineer": [
-      {"resume_path": "resumes/ravi_shankar.txt", "why": "Java, Spring Boot, Kafka and Redis, but 4 years against a 6+ minimum."},
-      {"resume_path": "resumes/resume_john_doe.pdf", "why": "Senior backend engineer, but Python and Django rather than Java."},
-      {"resume_path": "resumes/david_okafor.txt", "why": "Senior backend engineer, but Python and Django rather than Java."}
+      {
+        "resume_path": "resumes/ravi_shankar.txt",
+        "why": "Java, Spring Boot, Kafka and Redis, but 4 years against a 6+ minimum."
+      },
+      {
+        "resume_path": "resumes/resume_john_doe.pdf",
+        "why": "Senior backend engineer, but Python and Django rather than Java."
+      },
+      {
+        "resume_path": "resumes/david_okafor.txt",
+        "why": "Senior backend engineer, but Python and Django rather than Java."
+      }
     ],
     "data_engineer": [
-      {"resume_path": "resumes/resume_david_kim.txt", "why": "Two years of Spark pipelines, now an ML engineer; no Airflow, Kafka or warehouse."},
-      {"resume_path": "resumes/sara_kim.txt", "why": "Uses Snowflake and dbt as a data scientist, not as a pipeline engineer."}
+      {
+        "resume_path": "resumes/resume_david_kim.txt",
+        "why": "Two years of Spark pipelines, now an ML engineer; no Airflow, Kafka or warehouse."
+      },
+      {
+        "resume_path": "resumes/sara_kim.txt",
+        "why": "Uses Snowflake and dbt as a data scientist, not as a pipeline engineer."
+      }
     ],
     "frontend_engineer": [
-      {"resume_path": "resumes/yuki_tanaka.txt", "why": "Product designer who mentions React engineers, Figma, HTML and CSS; not an engineer."},
-      {"resume_path": "resumes/lucia_romano.md", "why": "React and Tailwind, but 2 years against a 3+ minimum and no TypeScript."},
-      {"resume_path": "resumes/david_okafor.txt", "why": "Built a React admin dashboard, but a Python backend lead without TypeScript."}
+      {
+        "resume_path": "resumes/yuki_tanaka.txt",
+        "why": "Product designer who mentions React engineers, Figma, HTML and CSS; not an engineer."
+      },
+      {
+        "resume_path": "resumes/lucia_romano.md",
+        "why": "React and Tailwind, but 2 years against a 3+ minimum and no TypeScript."
+      },
+      {
+        "resume_path": "resumes/david_okafor.txt",
+        "why": "Built a React admin dashboard, but a Python backend lead without TypeScript."
+      }
     ],
     "devops_sre": [
-      {"resume_path": "resumes/arjun_mehta.md", "why": "Backend engineer who migrated services to Kubernetes with Terraform; not an operations role."},
-      {"resume_path": "resumes/arash_karimi.md", "why": "Security engineer with AWS, Linux and CI work; no infrastructure or Kubernetes operations."}
+      {
+        "resume_path": "resumes/arjun_mehta.md",
+        "why": "Backend engineer who migrated services to Kubernetes with Terraform; not an operations role."
+      },
+      {
+        "resume_path": "resumes/arash_karimi.md",
+        "why": "Security engineer with AWS, Linux and CI work; no infrastructure or Kubernetes operations."
+      }
     ],
     "data_scientist": [
-      {"resume_path": "resumes/jessica_park.txt", "why": "8.7 years of total experience but only 1 as a data scientist, against 3+ as a data scientist or analyst."},
-      {"resume_path": "resumes/neha_gupta.md", "why": "Product manager who runs A/B tests with SQL; not a data scientist."},
-      {"resume_path": "resumes/hannah_brooks.md", "why": "Analytics engineer with SQL and Tableau; no statistics or modelling."}
+      {
+        "resume_path": "resumes/jessica_park.txt",
+        "why": "8.7 years of total experience but only 1 as a data scientist, against 3+ as a data scientist or analyst."
+      },
+      {
+        "resume_path": "resumes/neha_gupta.md",
+        "why": "Product manager who runs A/B tests with SQL; not a data scientist."
+      },
+      {
+        "resume_path": "resumes/hannah_brooks.md",
+        "why": "Analytics engineer with SQL and Tableau; no statistics or modelling."
+      }
     ],
     "mobile_engineer": [
-      {"resume_path": "resumes/yuki_tanaka.txt", "why": "Designed iOS and Android flows as a UX designer; not an engineer."}
+      {
+        "resume_path": "resumes/yuki_tanaka.txt",
+        "why": "Designed iOS and Android flows as a UX designer; not an engineer."
+      }
     ]
   }
 }

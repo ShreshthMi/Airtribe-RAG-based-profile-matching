@@ -61,7 +61,7 @@ Each label carries a one-line reason. Use grade 1 or higher as "relevant" for pr
 
 `hard_negatives` lists the grade-0 resumes most likely to fool a matcher, each with a reason. Examples are strong keyword overlap with too few years, or the right words in the wrong role.
 
-The labels were written from the resume and job description text before any matcher output was seen, by a single annotator (Claude, an AI assistant). They have not been independently reviewed.
+The labels were written from the resume and job description text by a single annotator (Claude, an AI assistant), not a human one, and have not been independently reviewed. The file was committed once and never edited afterwards. An earlier version of this card said they were written before any matcher output was seen; that cannot be supported, because sample matcher output for two of the seven job descriptions was already in the repository before the label file existed.
 
 ## Intentional edge cases
 
