@@ -116,7 +116,7 @@ Scroll to section 9, the error analysis, then section 10.
 
 ## 3:40-4:00 - Close
 
-> "Everything reproduces with `make all`: the index, both queries, 154 fast tests at 95%
+> "Everything reproduces with `make all`: the index, both queries, 177 fast tests at 94%
 > coverage, and the notebook. The labels, the dataset card and the limitations are all in
 > the repo."
 

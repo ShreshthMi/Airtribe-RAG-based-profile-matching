@@ -15,7 +15,7 @@ revalidate the cached model, so a query is not network-free by default; set
 make setup          # uv venv on Python 3.12 + install
 make index          # Part A: build the index from resumes/
 make match          # Part B: run the documented queries into outputs/
-make test           # 177 tests, 95% line coverage
+make test           # 177 tests, 94% line coverage
 make notebook       # execute the experiments notebook in place
 ```
 
@@ -126,21 +126,21 @@ account for essentially all of the wall clock, so an unattributed remainder cann
 
 | Index build (notebook §3) | |
 |---|---|
-| Total | 12.8 s |
-| of which loading MiniLM, once per process | 11.5 s (90%) |
-| everything else | 1.29 s = 30 ms per resume, 7 ms per chunk |
-| breakdown: open ChromaDB / embed / store / read+parse | 0.64 s / 0.43 s / 0.15 s / 0.06 s |
+| Total | 13.4 s |
+| of which loading MiniLM, once per process | 12.1 s (90%) |
+| everything else | 1.28 s = 30 ms per resume, 7 ms per chunk |
+| breakdown: open ChromaDB / embed / store / read+parse | 0.63 s / 0.42 s / 0.15 s / 0.06 s |
 | unattributed | 0.008 s (0.1%) |
 
 | Query (notebook §6) | |
 |---|---|
-| Median end to end | 7.2 ms |
-| Worst p95 across the 7 JDs | 11.0 ms |
-| Embedding the JD | 64.8% |
-| Vector search | 18.6% |
-| Scoring and explanation | 8.5% |
+| Median end to end | 7.4 ms |
+| Worst p95 across the 7 JDs | 10.4 ms |
+| Embedding the JD | 65.2% |
+| Vector search | 18.7% |
+| Scoring and explanation | 8.2% |
 | BM25 | 2.9% |
-| Parsing the JD | 2.8% |
+| Parsing the JD | 2.7% |
 
 Indexing is model-load bound rather than data bound, so a long-lived process should hold
 one `Embedder` instead of constructing one per request. A query is dominated by embedding
@@ -153,10 +153,10 @@ arithmetic operations per candidate - and it was an artefact of the method: phas
 derived by subtracting separately timed runs from the end-to-end time, which produced
 negative durations for whole phases. With direct instrumentation in place, the real defect
 showed up: `extract_skills(jd)` was being called inside the per-candidate loop, sweeping
-~80 compiled patterns over the job description once per candidate, 43 times per query.
+73 compiled patterns over the job description once per candidate, 43 times per query.
 Notebook §6 now measures the fix as a live A/B by reinstating exactly that work: it costs
-**21.5 ms at p50, a 3.3x difference**. A regression test asserts the JD is scanned once
-rather than once per candidate. The end-to-end number looked perfectly acceptable at ~22
+**21.2 ms at p50, a 3.3x difference**. A regression test asserts the JD is scanned once
+rather than once per candidate. The end-to-end number looked perfectly acceptable at ~30
 ms; only a *sound* breakdown found it.
 
 ## Architecture
@@ -401,7 +401,7 @@ with no relevant candidate (which makes recall undefined).
 ## Testing
 
 ```bash
-make test        # 177 tests, ~8s, 95% line coverage
+make test        # 177 tests, ~8s, 94% line coverage
 make test-all    # also the 3 tests that load the real MiniLM model
 ```
 
@@ -446,14 +446,16 @@ distinct ids; a resume with no headings is still retrievable.
   number. **This buys traceability, not correctness, and an earlier version of this README
   overclaimed by saying such reasoning "could not hallucinate a qualification".** It can,
   because the extracted number can itself be wrong: the product manager in
-  `resumes/resume_aisha_bello.docx` is credited with 5.8 years of Java on the strength of
-  one sentence, "Partnered with the Java backend team". She passes
-  `--must-have "5+ years Java"`, appears in `top_matches`, and the reasoning states
+  `resumes/resume_aisha_bello.docx` was credited with 5.8 years of Java on the strength of
+  one sentence, "Partnered with the Java backend team". She passed
+  `--must-have "5+ years Java"`, appeared in `top_matches`, and the reasoning stated
   "Must-haves met: 5+ years Java (5.8 yrs Java)" - a qualification she does not have,
-  asserted in the output. What extractive reasoning does guarantee is that the claim is
-  auditable: the sentence it came from is in the index and the per-skill figure is in the
-  registry, so the error is findable. A generated paragraph would have produced the same
-  false claim with nothing to trace it to.
+  asserted in the output. Per-skill years now require corroboration (the skill declared in
+  Skills or Summary, or used in more than one role), so she is now filtered out with 0 years
+  of Java - but the general point stands, because any extracted number can be wrong. What
+  extractive reasoning does guarantee is that the claim is auditable: the sentence it came
+  from is in the index and the per-skill figure is in the registry, so the error is findable.
+  A generated paragraph would have produced the same false claim with nothing to trace it to.
 - **A marginally better weighting was found and not adopted.** `.6` semantic / `.4`
   skills edges the production weights on nDCG@5. With 7 queries that is one or two rank
   swaps and there is no held-out split, so adopting it would mean reporting an accuracy

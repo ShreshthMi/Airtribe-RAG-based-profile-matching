@@ -40,12 +40,21 @@ GOOD = (63, 185, 80)
 WARN = (210, 153, 34)
 WHITE = (255, 255, 255)
 
-MONO = "/System/Library/Fonts/Menlo.ttc"
-SANS = "/System/Library/Fonts/SFNS.ttf"
+# macOS first, then the common Linux and Windows locations. Pillow's own scalable default
+# is the last resort, so the renderer runs anywhere Pillow does.
+MONO = ("/System/Library/Fonts/Menlo.ttc", "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
+        "DejaVuSansMono.ttf", "C:/Windows/Fonts/consola.ttf")
+SANS = ("/System/Library/Fonts/SFNS.ttf", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "DejaVuSans.ttf", "C:/Windows/Fonts/segoeui.ttf")
 
 
-def font(path: str, size: int):
-    return ImageFont.truetype(path, size)
+def font(candidates: tuple[str, ...], size: int):
+    for path in candidates:
+        try:
+            return ImageFont.truetype(path, size)
+        except OSError:
+            continue
+    return ImageFont.load_default(size=size)
 
 
 F_TITLE = font(SANS, 54)
