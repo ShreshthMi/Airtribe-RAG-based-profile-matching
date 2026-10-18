@@ -1,0 +1,21 @@
+Kwame Mensah
+kwame.mensah@example.com | Accra, Ghana
+
+SUMMARY
+Full-stack JavaScript engineer with 6 years of experience, mostly on Node.js APIs with React front ends.
+
+SKILLS
+JavaScript, TypeScript, Node.js, React, GraphQL, MongoDB, PostgreSQL, Docker, AWS, Jest
+
+EXPERIENCE
+Senior Full-Stack Engineer, Trotro Logistics
+Jan 2022 - Present
+- Built Node.js and GraphQL APIs in TypeScript backed by MongoDB; React dashboards for dispatch teams.
+- Wrote Jest test suites and set up Docker-based deployments on AWS.
+
+Software Engineer, Kente Digital
+Jun 2020 - Dec 2021
+- Express and Node.js REST services; React pages for the admin portal.
+
+EDUCATION
+B.Sc. in Computer Science, Kwame Nkrumah University of Science and Technology, 2020

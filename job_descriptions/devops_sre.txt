@@ -1,0 +1,17 @@
+Site Reliability Engineer
+
+About the role
+Keep a multi-region platform reliable, fast and cheap to run, and make deploys boring.
+
+Requirements
+- 5+ years of experience in DevOps, SRE or platform engineering
+- Kubernetes and Docker in production
+- Infrastructure as code with Terraform
+- AWS or GCP
+- CI/CD pipelines (GitHub Actions, Jenkins or similar)
+- Linux and scripting in Python or Go
+- Monitoring with Prometheus and Grafana
+
+Nice to have
+- Incident response and on-call leadership
+- Cloud cost optimisation

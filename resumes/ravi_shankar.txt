@@ -1,0 +1,20 @@
+Ravi Shankar
+ravi.shankar@example.com | Chennai
+
+SUMMARY
+Java backend developer with 4 years of experience on Spring Boot microservices.
+
+SKILLS
+Java, Spring Boot, Microservices, REST APIs, Kafka, Redis, MySQL, Docker, Git
+
+EXPERIENCE
+Software Engineer II, Finnova Payments
+Jan 2024 - Present
+- Built Spring Boot microservices for loan disbursement with Kafka events and Redis caching.
+
+Software Engineer, Zentech Solutions
+Aug 2022 - Dec 2023
+- REST APIs in Java and Spring Boot; MySQL schema design; Docker-based local environments.
+
+EDUCATION
+B.E. in Computer Science, Anna University, 2022

@@ -1,0 +1,17 @@
+Data Engineer - Streaming Analytics
+
+About the role
+We process billions of events a day for real-time analytics. You will build and run the batch and streaming pipelines behind our product dashboards and ML features.
+
+Requirements
+- 4+ years of data engineering experience
+- Strong Python and SQL
+- Apache Spark for large-scale batch processing
+- Airflow for orchestration
+- Kafka for streaming ingestion
+- A cloud data warehouse such as Snowflake or BigQuery
+
+Nice to have
+- dbt and Terraform
+- Scala
+- Experience on AWS or GCP

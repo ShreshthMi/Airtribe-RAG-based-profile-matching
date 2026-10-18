@@ -1,0 +1,21 @@
+Yuki Tanaka
+yuki.tanaka@example.com | Tokyo, Japan
+
+SUMMARY
+Product designer with 6 years of experience in UX research, interaction design and design systems for web and mobile apps.
+
+SKILLS
+Figma, User research, Prototyping, Design systems, Accessibility (WCAG), HTML, CSS, Usability testing
+
+EXPERIENCE
+Senior Product Designer, Hikari Pay
+May 2022 - Present
+- Led the redesign of the payments web app; built the Figma design system used by 5 squads.
+- Ran usability tests and worked with React engineers on accessible components.
+
+UX Designer, Sakura Travel
+Jul 2020 - Apr 2022
+- Wireframes, prototypes and user research for the booking flow on iOS, Android and web.
+
+EDUCATION
+B.A. in Design, Musashino Art University, 2020

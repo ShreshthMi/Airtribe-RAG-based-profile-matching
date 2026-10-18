@@ -1,0 +1,21 @@
+Jessica Park
+jessica.park@example.com | Melbourne, Australia
+
+SUMMARY
+Former mechanical engineer moving into data science, with 1 year as a data scientist after a data science bootcamp.
+
+SKILLS
+Python, Pandas, scikit-learn, SQL, Statistics, Tableau, Excel, MATLAB
+
+EXPERIENCE
+Junior Data Scientist, Eucalyptus Energy
+Sep 2025 - Present
+- Built scikit-learn models to forecast wind turbine maintenance; Tableau dashboards for operations.
+
+Mechanical Engineer, Southern Cross Manufacturing
+Feb 2018 - Jul 2025
+- Designed pump assemblies; used MATLAB and Excel for statistical process control.
+
+EDUCATION
+Data Science Bootcamp, Le Wagon Melbourne, 2025
+B.Eng. in Mechanical Engineering, Monash University, 2017

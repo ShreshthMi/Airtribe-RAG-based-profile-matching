@@ -1,0 +1,21 @@
+Diego Fernández
+diego.fernandez@example.com | Buenos Aires, Argentina
+
+SUMMARY
+Data engineer with 5 years of experience building reliable ELT and streaming pipelines.
+
+SKILLS
+Python, SQL, Spark (PySpark), Airflow, Kafka, Snowflake, dbt, AWS, Docker, Git
+
+EXPERIENCE
+Data Engineer, Mercado Austral
+03/2022 - Present
+- PySpark batch jobs and Kafka consumers loading clickstream data into Snowflake.
+- Airflow DAGs with data quality checks in Python; dbt models for finance reporting.
+
+Junior Data Engineer, Pampa Data
+06/2021 - 02/2022
+- SQL and Python ETL scripts on AWS; Airflow scheduling.
+
+EDUCATION
+Ingeniero en Informática (B.Sc. equivalent), Universidad de Buenos Aires, 2021

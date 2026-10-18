@@ -1,0 +1,21 @@
+Karan Malhotra
+karan.malhotra@example.com | Delhi
+
+SUMMARY
+LLM application engineer with 3 years of experience building RAG chatbots and agents.
+
+SKILLS
+Python, LangChain, LLMs, RAG, Pinecone, Hugging Face, FastAPI, Docker, AWS, PostgreSQL
+
+EXPERIENCE
+LLM Engineer, Promptly AI
+Jan 2024 - Present
+- Built RAG chatbots with LangChain, Pinecone and GPT-4 for insurance customers; Python FastAPI backend on AWS.
+- Evaluated retrieval quality with custom test sets and reduced hallucinations by 30%.
+
+Associate Software Engineer, Nimbus Tech
+Jul 2023 - Dec 2023
+- Python scripts and REST APIs for internal tools.
+
+EDUCATION
+B.Tech in Computer Science, IIIT Delhi, 2023

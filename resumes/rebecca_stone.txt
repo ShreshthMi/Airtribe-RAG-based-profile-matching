@@ -1,0 +1,25 @@
+Rebecca Stone
+rebecca.stone@example.com | Dublin, Ireland
+
+SUMMARY
+Cloud solutions architect with 14 years of experience designing AWS and Azure landing zones for enterprise customers.
+
+SKILLS
+AWS, Azure, Terraform, Kubernetes, Docker, CI/CD, Linux, Python, System Design
+
+EXPERIENCE
+Principal Cloud Architect, Clearsky Consulting
+Feb 2020 - Present
+- Designed multi-account AWS and Azure landing zones with Terraform for banks and insurers.
+- Advised clients on Kubernetes adoption and CI/CD standards; pre-sales architecture reviews.
+
+Cloud Engineer, Emerald Systems
+Mar 2014 - Jan 2020
+- Migrated on-premise Linux workloads to AWS; Python automation and Jenkins pipelines.
+
+Systems Administrator, Celtic Data Centres
+Aug 2012 - Feb 2014
+- Linux and VMware administration.
+
+EDUCATION
+B.Sc. in Computing, Dublin City University, 2012

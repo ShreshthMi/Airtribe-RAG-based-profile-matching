@@ -1,0 +1,15 @@
+Frontend Engineer - Design Systems
+
+About the role
+Join the team that builds our customer-facing web app and the shared component library behind it.
+
+Requirements
+- 3+ years building production web apps with React and TypeScript
+- Solid HTML and CSS, with a focus on accessibility (WCAG)
+- Testing with Jest or Playwright
+- Working closely with designers in Figma
+
+Nice to have
+- Next.js and server-side rendering
+- GraphQL
+- Performance optimisation (Core Web Vitals)

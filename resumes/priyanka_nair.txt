@@ -1,0 +1,20 @@
+Priyanka Nair
+priyanka.nair@example.com | Bengaluru
+
+SUMMARY
+Android developer with 5 years of experience shipping Kotlin apps with millions of users.
+
+SKILLS
+Kotlin, Android, Jetpack Compose, Coroutines, Room, Retrofit, REST APIs, Firebase, Espresso, Java
+
+EXPERIENCE
+Senior Android Developer, Chalo Transit
+Aug 2023 - Present
+- Migrated the app to Jetpack Compose in Kotlin; offline ticket wallet with Room and coroutines.
+
+Android Developer, Swiftcart Grocery
+Jul 2021 - Jul 2023
+- Built checkout and order-tracking features in Kotlin and Java; Espresso UI tests; Firebase analytics.
+
+EDUCATION
+B.Tech in Information Technology, Cochin University, 2021

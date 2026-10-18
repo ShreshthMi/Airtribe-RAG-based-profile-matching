@@ -1,0 +1,21 @@
+Lukas Becker
+lukas.becker@example.com | Berlin, Germany
+
+SUMMARY
+Mobile engineer with 5 years of experience building native iOS and Android apps for a health-tech scale-up.
+
+SKILLS
+Swift, SwiftUI, iOS, Kotlin, Jetpack Compose, Android, GraphQL, REST APIs, XCTest, Espresso, Firebase
+
+EXPERIENCE
+Mobile Engineer, Pulsewave Health
+Feb 2022 - Present
+- Ships the iOS app in Swift and SwiftUI and the Android app in Kotlin and Jetpack Compose from a shared GraphQL API.
+- Built offline-first symptom logging; XCTest and Espresso suites gate every release.
+
+Android Developer, Spreebyte
+Aug 2021 - Jan 2022
+- Kotlin features and Firebase crash reporting for a food delivery app.
+
+EDUCATION
+B.Sc. in Computer Science, TU Berlin, 2021

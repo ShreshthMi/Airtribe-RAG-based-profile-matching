@@ -1,0 +1,15 @@
+Senior Mobile Engineer (iOS and Android)
+
+About the role
+You will own our native iOS and Android apps end to end, from architecture to release.
+
+Requirements
+- 4+ years of native mobile development
+- Swift and SwiftUI for iOS
+- Kotlin and Jetpack Compose for Android
+- REST or GraphQL APIs and offline data sync
+- Automated testing (XCTest, Espresso) and crash-free releases
+
+Nice to have
+- Firebase
+- Fastlane and mobile CI/CD

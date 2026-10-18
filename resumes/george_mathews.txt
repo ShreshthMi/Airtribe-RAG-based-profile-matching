@@ -1,0 +1,25 @@
+George Mathews
+george.mathews@example.com | Kochi
+
+PROFILE
+Engineering manager with 14 years of experience: 9 as a hands-on Java backend engineer and 5 leading payment platform teams.
+
+CORE COMPETENCIES
+Leadership, Java, Spring Boot, Microservices, Kafka, AWS, Kubernetes, System Design, Agile, Hiring
+
+WORK HISTORY
+Engineering Manager, Ledgerline
+Apr 2021 - Present
+- Managed a team of 12 engineers building payment microservices (Java, Spring Boot, Kafka) on AWS and Kubernetes.
+- Owned the hiring plan, quarterly roadmap and on-call health.
+
+Lead Software Engineer, Ledgerline
+Jan 2017 - Mar 2021
+- Tech lead for the settlement platform in Java and Spring Boot; introduced Kafka-based event streaming.
+
+Software Engineer, InfoBridge
+Jul 2012 - Dec 2016
+- Java EE development for banking clients.
+
+ACADEMIC BACKGROUND
+B.Tech in Computer Science, NIT Calicut, 2012

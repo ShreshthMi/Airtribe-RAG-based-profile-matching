@@ -1,0 +1,16 @@
+Data Scientist - Product Analytics
+
+About the role
+Help product teams make better decisions with experiments, models and clear analysis.
+
+Requirements
+- 3+ years of experience as a data scientist or analyst
+- Python (Pandas, scikit-learn) and SQL
+- Statistics and A/B testing
+- Building and validating machine learning models
+- Data visualization with Tableau or similar tools
+
+Nice to have
+- Master's degree in statistics, computer science or a related field
+- Causal inference
+- Snowflake and dbt
