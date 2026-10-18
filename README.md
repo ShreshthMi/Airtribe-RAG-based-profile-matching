@@ -206,6 +206,7 @@ outputs/                          example matcher output
 tests/                            177 tests
 DATASET.md                        dataset card: provenance, coverage, edge cases
 docs/demo_script.md               demo video shot list
+docs/independent_evaluation_set.md  protocol for an independently written JD set
 scripts/make_demo_video.py        renders demo/demo.mp4 from live output + notebook charts
 demo/demo_session.mp4             the 3:48 demo, recorded as a terminal session
 demo/demo.mp4                     the same walkthrough as composed frames
@@ -465,6 +466,12 @@ written for this assignment and labelled by the same project, 4-7 relevant candi
 JD, 7 queries, and no held-out split. Skill extraction is a fixed vocabulary, so a skill
 outside it is invisible. Experience years are inferred from date ranges, which resumes
 with vague dates, gaps or overlapping contracts will defeat.
+
+The first of those is the one that matters most, and it has a written fix:
+[`docs/independent_evaluation_set.md`](docs/independent_evaluation_set.md) is a protocol
+for building a second evaluation set whose job descriptions are written without reading the
+resumes, including the blind-authoring rule, the labelling sequence that keeps the queries
+frozen, and the vocabulary-overlap measurement that decides whether it worked.
 
 Matching is not hiring. The score ranks text similarity and declared skills; it does not
 measure capability. Candidate names are deliberately excluded from the embedded text so
