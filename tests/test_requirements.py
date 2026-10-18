@@ -88,3 +88,38 @@ def test_a_job_description_with_no_headings_falls_back_to_every_skill_mentioned(
     jd = "We want someone who has built RAG systems in Python with LangChain."
     critical = critical_skills_from_jd(jd)
     assert {"Python", "RAG", "LangChain"} <= set(critical)
+
+
+# --- defects found by an examiner's own job descriptions ------------------- #
+def test_a_years_figure_does_not_bind_to_a_skill_on_the_next_line():
+    """This silently became a hard "5+ years Python" filter the JD never stated."""
+    jd = """Senior Engineer
+
+Requirements
+- 5+ years of experience
+- Python and SQL
+"""
+    found = [(r.skill, r.min_years) for r in extract_requirements_from_jd(jd)]
+    assert found == [(None, 5.0)]
+
+
+def test_a_years_figure_still_binds_to_a_skill_on_its_own_line():
+    jd = "Requirements\n- 5+ years of Python experience\n"
+    assert [(r.skill, r.min_years) for r in extract_requirements_from_jd(jd)] == [("Python", 5.0)]
+
+
+@pytest.mark.parametrize("phrase", ["5-7 years", "5 – 7 years", "5 to 7 years"])
+def test_a_year_range_states_its_lower_bound(phrase):
+    jd = f"Requirements\n- {phrase} of backend experience\n"
+    assert [r.min_years for r in extract_requirements_from_jd(jd)] == [5.0]
+    assert parse_requirement(f"{phrase} Java").min_years == 5.0
+
+
+def test_a_degree_requirement_naming_two_levels_takes_the_lower_as_its_bar():
+    assert parse_requirement("Bachelor's or Master's degree").education_rank == 2
+    assert parse_requirement("Master's degree").education_rank == 3
+
+
+def test_a_scrum_master_credential_is_not_a_degree_requirement():
+    requirement = parse_requirement("Certified Scrum Master")
+    assert requirement is None or requirement.education_rank is None

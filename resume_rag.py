@@ -175,14 +175,21 @@ SKILL_ALIASES: dict[str, list[str]] = {
     "Excel": ["excel", "spreadsheets"], "Selenium": ["selenium"], "System Design": ["system design", "distributed systems"],
 }
 
+# A bare "Go" or "R" is too ambiguous to match case-insensitively: it turns "go-live" into
+# Go and "R&D" into R. For these two the canonical name is left out of the general pattern
+# and matched only by _SPECIAL_CASE below, as a capitalised item in a list.
+_AMBIGUOUS_BARE = frozenset({"Go", "R"})
+
 _SKILL_PATTERNS = {
     canon: re.compile(
-        r"(?<![\w+#.])(" + "|".join(re.escape(a) for a in sorted(aliases + [canon.lower()], key=len, reverse=True)) + r")(?![\w+#])",
+        r"(?<![\w+#.])(" + "|".join(
+            re.escape(a) for a in sorted(
+                aliases if canon in _AMBIGUOUS_BARE else aliases + [canon.lower()],
+                key=len, reverse=True)) + r")(?![\w+#])",
         re.IGNORECASE,
     )
     for canon, aliases in SKILL_ALIASES.items()
 }
-# A bare "Go" or "R" is too ambiguous in lowercase prose; accept it only as a capitalised token in a list.
 _SPECIAL_CASE = {"Go": re.compile(r"(?:^|[,|/•(\s])Go(?=[,|/)\s]|$)"), "R": re.compile(r"(?:^|[,|/•(\s])R(?=[,|/)]|$)")}
 
 
@@ -293,8 +300,8 @@ def _role_block_start(text: str, match_start: int) -> int:
     return line_start
 
 
-def extract_experience(experience_text: str, full_text: str,
-                       today: date | None = None) -> tuple[float, dict[str, float]]:
+def extract_experience(experience_text: str, full_text: str, today: date | None = None,
+                       declared_skills: set[str] | None = None) -> tuple[float, dict[str, float]]:
     """Total years of experience and years per skill.
 
     Each date range in the Experience section marks a role. A role spans its own title
@@ -306,6 +313,14 @@ def extract_experience(experience_text: str, full_text: str,
 
     `today` is the reference date for open-ended roles ("Jan 2021 - Present"); without it
     these figures grow with the calendar.
+
+    `declared_skills` guards against a single passing mention becoming years of experience.
+    A skill earns a role's duration only if the candidate also declares it (Skills or
+    Summary section) or uses it across more than one role. Without this, the product
+    manager who "partnered with the Java backend team" is credited with 5.8 years of Java
+    and passes a "5+ years Java" filter. The trade-off is under-crediting a skill genuinely
+    used in exactly one role and never listed; that direction of error is the safer one,
+    because it withholds a qualification rather than inventing one.
     """
     ranges = find_date_ranges(experience_text, today=today)
     role_intervals: list[tuple[int, int]] = []
@@ -323,7 +338,9 @@ def extract_experience(experience_text: str, full_text: str,
             per_skill.setdefault(skill, []).append((s, e))
 
     total_years = _merged_years(role_intervals)
-    skill_years = {k: _merged_years(v) for k, v in per_skill.items()}
+    declared = declared_skills if declared_skills is not None else set(per_skill)
+    skill_years = {k: _merged_years(v) for k, v in per_skill.items()
+                   if k in declared or len(v) > 1}
 
     for m in re.finditer(r"(\d{1,2}(?:\.\d)?)\+?\s*(?:years?|yrs?)\s+(?:of\s+)?(?:professional\s+|hands-on\s+)?experience",
                          full_text, re.IGNORECASE):
@@ -340,8 +357,12 @@ def extract_experience(experience_text: str, full_text: str,
 
 EDUCATION_LEVELS = [  # (level, rank, pattern) - highest first
     ("PhD", 4, r"\b(ph\.?\s?d|doctorate|doctor of philosophy)(?![a-z])"),
-    ("Master", 3, r"\b(master'?s?|m\.?\s?sc?\.?|m\.?tech|m\.e\.|m\.?eng\.?|mba|m\.a\.)(?![a-z])"),
-    ("Bachelor", 2, r"\b(bachelor'?s?|b\.?\s?sc?\.?|b\.?tech|b\.e\.|b\.?eng\.?|b\.a\.|undergraduate)(?![a-z])"),
+    # "master" on its own is not a degree - "Certified Scrum Master" is not an MSc - so a
+    # possessive, "of"/"in", or an abbreviation is required.
+    ("Master", 3, r"\b(master'?s\b|masters\b|master of\b|master in\b|m\.?\s?sc?\.?|m\.?tech|m\.e\.|"
+                  r"m\.?eng\.?|mba|m\.a\.|m\.?a\.?(?=\s+(?:in|degree)))(?![a-z])"),
+    ("Bachelor", 2, r"\b(bachelor'?s?|b\.?\s?sc?\.?|b\.?tech|b\.e\.|b\.?eng\.?|b\.a\.|"
+                    r"b\.?a\.?(?=\s+(?:in|degree))|undergraduate)(?![a-z])"),
     ("Associate", 1, r"\b(associate'?s? degree|diploma)(?![a-z])"),
 ]
 
@@ -425,7 +446,10 @@ def process_resume(path: Path, text: str, display_path: str | None = None, max_c
 
     name = extract_name(by_name.get("header", text[:300]), path)
     skill_text = professional_text(by_name, text)
-    total_years, skill_years = extract_experience(by_name.get("experience", ""), skill_text, today=today)
+    # Skills the candidate claims outright, used to corroborate per-skill years.
+    declared = set(extract_skills(f"{by_name.get('skills', '')}\n{by_name.get('summary', '')}"))
+    total_years, skill_years = extract_experience(by_name.get("experience", ""), skill_text,
+                                                  today=today, declared_skills=declared)
     level, edu_line, rank = extract_education(by_name.get("education", ""))
     rel_path = display_path or f"{path.parent.name}/{path.name}"
     candidate_id = hashlib.sha1(rel_path.encode()).hexdigest()[:12]
@@ -560,7 +584,12 @@ def build_index(resume_dir: str | Path, db_path: str | Path, model_name: str = D
     phase = time.perf_counter()
     embedder = Embedder(model_name)
     timings["model_load"] = time.perf_counter() - phase
+    # Opening the ChromaDB client is not free, and it used to be the largest
+    # unattributed slice of a build: the named phases summed to about half the measured
+    # non-model time and the remainder was simply unaccounted for.
+    phase = time.perf_counter()
     collection = get_collection(db_path, reset=reset)
+    timings["db_open"] = time.perf_counter() - phase
     timings["embed"] = 0.0
     timings["store"] = 0.0
     for record in records:
@@ -580,7 +609,26 @@ def build_index(resume_dir: str | Path, db_path: str | Path, model_name: str = D
         )
         timings["store"] += time.perf_counter() - phase
 
+    phase = time.perf_counter()
+    if not reset:
+        # A resume deleted from the directory would otherwise keep its chunks in the
+        # collection forever: the per-candidate delete above only covers resumes still
+        # present. Drop anything whose candidate is gone.
+        stored = collection.get(include=["metadatas"])
+        current = {record.candidate_id for record in records}
+        stale = [chunk_id for chunk_id, meta in zip(stored["ids"], stored["metadatas"])
+                 if meta.get("candidate_id") not in current]
+        if stale:
+            collection.delete(ids=stale)
+            print(f"[resume_rag] removed {len(stale)} chunk(s) for resumes no longer present",
+                  file=sys.stderr)
+    timings["cleanup"] = time.perf_counter() - phase
     timings["total"] = time.perf_counter() - started
+    # Every phase above is measured, so this should be close to zero. It is reported
+    # rather than hidden: an unattributed remainder is how a timing breakdown misleads.
+    timings["unattributed"] = timings["total"] - sum(
+        value for key, value in timings.items() if key != "total")
+
     registry = {
         "model": model_name,
         "indexed_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),

@@ -193,3 +193,91 @@ def test_a_mixed_case_name_is_not_re_cased():
 
 def test_the_filename_is_the_last_resort():
     assert extract_name("contact@example.com | +1 555 0100", Path("jane_roe.txt")) == "Jane Roe"
+
+
+# --- defects found by an examiner's own inputs ----------------------------- #
+@pytest.mark.parametrize("text", ["go-live planning", "the go-ahead was given", "a good goal"])
+def test_a_bare_lowercase_go_is_not_the_language(text):
+    """'go-live' matched Go because the canonical name was in the general pattern."""
+    assert "Go" not in extract_skills(text)
+
+
+@pytest.mark.parametrize("text", ["R&D budget", "see section r below"])
+def test_a_bare_lowercase_r_is_not_the_language(text):
+    assert "R" not in extract_skills(text)
+
+
+def test_go_and_r_are_still_found_in_a_skills_list():
+    assert "Go" in extract_skills("Languages: Go, Python, Bash")
+    assert "R" in extract_skills("Python, R, SQL")
+
+
+@pytest.mark.parametrize("line, level", [
+    ("Certified Scrum Master", "Unknown"),      # not a degree
+    ("Scrum Master certification", "Unknown"),
+    ("Master's degree in Physics", "Master"),
+    ("Master of Science, Delft", "Master"),
+    ("BA in Economics", "Bachelor"),
+    ("MA in Linguistics", "Master"),
+])
+def test_a_job_title_containing_master_is_not_a_degree(line, level):
+    assert extract_education(line)[0] == level
+
+
+def test_a_skill_mentioned_once_and_never_declared_earns_no_years():
+    """A product manager who "partnered with the Java backend team" was credited with
+    5.8 years of Java and passed a "5+ years Java" filter."""
+    text = """Dana Pike
+dana@example.com
+
+SUMMARY
+Product manager with 6 years of experience shipping B2B products.
+
+SKILLS
+Product strategy, Roadmapping, SQL, Figma
+
+EXPERIENCE
+Senior Product Manager, Granite
+Jan 2019 - Dec 2024
+- Partnered with the Java backend team to redesign permissions.
+"""
+    record = resume_rag.process_resume(Path("dana.txt"), text, today=TODAY)
+    assert "Java" in record.skills, "the mention is real and should still be visible"
+    assert record.skill_years.get("Java", 0.0) == 0.0, "but it must not become years of experience"
+    assert record.skill_years.get("SQL", 0.0) > 0 or "SQL" in record.skills
+
+
+def test_a_declared_skill_still_earns_its_role_duration():
+    text = """Ola Berg
+ola@example.com
+
+SKILLS
+Java, Spring Boot, Kafka
+
+EXPERIENCE
+Backend Engineer, Tessera
+Jan 2019 - Dec 2024
+- Java and Spring Boot services.
+"""
+    record = resume_rag.process_resume(Path("ola.txt"), text, today=TODAY)
+    assert record.skill_years["Java"] == pytest.approx(6.0)
+
+
+def test_a_skill_used_across_two_roles_is_corroborated_without_being_declared():
+    text = """Sam Reyes
+sam@example.com
+
+SKILLS
+Product strategy
+
+EXPERIENCE
+Engineer, One
+Jan 2019 - Dec 2020
+- Built services in Rust.
+
+Engineer, Two
+Jan 2021 - Dec 2022
+- More Rust work.
+"""
+    record = resume_rag.process_resume(Path("sam.txt"), text, today=TODAY)
+    assert record.skill_years.get("Rust", 0.0) == pytest.approx(4.0)

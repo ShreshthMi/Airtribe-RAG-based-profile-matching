@@ -122,3 +122,27 @@ def test_a_job_description_may_itself_be_a_docx(tiny_index, project_root, monkey
     # the DOCX was read through fs_tools, tables and all, and used as the query text
     assert "Terraform" in payload["job_description"]
     assert payload["top_matches"]
+
+
+def test_re_indexing_without_reset_drops_chunks_for_a_deleted_resume(tmp_path, monkeypatch):
+    """Without this, a removed resume stayed searchable in the collection forever."""
+    corpus = tmp_path / "resumes"
+    corpus.mkdir()
+    (corpus / "keep.txt").write_text("Keep Me\nk@example.com\n\nSKILLS\nPython\n")
+    (corpus / "drop.txt").write_text("Drop Me\nd@example.com\n\nSKILLS\nKotlin\n")
+    db = tmp_path / "db"
+
+    run(resume_rag, ["--resumes", str(corpus), "--db", str(db), "--reset"], monkeypatch)
+    first = json.loads((db / "candidates.json").read_text())
+    assert {c["candidate_name"] for c in first["candidates"]} == {"Keep Me", "Drop Me"}
+
+    (corpus / "drop.txt").unlink()
+    run(resume_rag, ["--resumes", str(corpus), "--db", str(db)], monkeypatch)   # no --reset
+
+    second = json.loads((db / "candidates.json").read_text())
+    assert {c["candidate_name"] for c in second["candidates"]} == {"Keep Me"}
+
+    import chromadb
+    collection = chromadb.PersistentClient(path=str(db)).get_collection(resume_rag.COLLECTION_NAME)
+    names = {meta["candidate_name"] for meta in collection.get(include=["metadatas"])["metadatas"]}
+    assert names == {"Keep Me"}, "stale chunks for the deleted resume are still in the index"

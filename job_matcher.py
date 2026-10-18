@@ -19,6 +19,7 @@ import argparse
 import json
 import re
 import sys
+import time
 from dataclasses import dataclass, asdict
 from pathlib import Path
 
@@ -96,17 +97,31 @@ class Requirement:
         return True, ""
 
 
+# "5-7 years" states a minimum of five, not seven. Collapse a range to its lower bound
+# before any years pattern sees it.
+_YEAR_RANGE_RE = re.compile(r"(\d{1,2})\s*(?:-|\u2013|\u2014|to)\s*\d{1,2}(\s*\+?\s*(?:years?|yrs?))", re.IGNORECASE)
+
+
+def lower_bound_years(text: str) -> str:
+    """Rewrite '5-7 years' as '5 years' so a range is read as the minimum it states."""
+    return _YEAR_RANGE_RE.sub(r"\1\2", text)
+
+
 def parse_requirement(text: str) -> Requirement | None:
     """Parse strings like '5+ years Python', 'Python 5 years', '3 years experience', 'Kubernetes', 'Master's degree'."""
     raw = text.strip()
-    for level, rank, pattern in EDUCATION_LEVELS:
-        if re.search(pattern, raw, re.IGNORECASE) and re.search(r"degree|level|education|ph\.?d|master|bachelor", raw, re.I):
-            return Requirement(raw=raw, education_rank=rank)
+    normalised = lower_bound_years(raw)
+    # A degree requirement naming several levels states the LOWEST as its bar:
+    # "Bachelor's or Master's degree" requires a Bachelor's, not a Master's.
+    ranks = [rank for _, rank, pattern in EDUCATION_LEVELS
+             if re.search(pattern, normalised, re.IGNORECASE)]
+    if ranks and re.search(r"degree|level|education|ph\.?d|master|bachelor|associate", raw, re.I):
+        return Requirement(raw=raw, education_rank=min(ranks))
     years = None
-    m = re.search(r"(\d{1,2}(?:\.\d)?)\s*\+?\s*(?:years?|yrs?)", raw, re.IGNORECASE)
+    m = re.search(r"(\d{1,2}(?:\.\d)?)\s*\+?\s*(?:years?|yrs?)", normalised, re.IGNORECASE)
     if m:
         years = float(m.group(1))
-    skills = extract_skills(re.sub(r"(\d{1,2}(?:\.\d)?)\s*\+?\s*(?:years?|yrs?)", " ", raw, flags=re.I))
+    skills = extract_skills(re.sub(r"(\d{1,2}(?:\.\d)?)\s*\+?\s*(?:years?|yrs?)", " ", normalised, flags=re.I))
     if skills:
         return Requirement(raw=raw, skill=skills[0], min_years=years)
     if years is not None:
@@ -115,15 +130,23 @@ def parse_requirement(text: str) -> Requirement | None:
 
 
 def extract_requirements_from_jd(jd: str) -> list[Requirement]:
-    """Pull 'N+ years <skill>' / 'N+ years of experience' statements out of the JD text."""
+    """Pull 'N+ years <skill>' / 'N+ years of experience' statements out of the JD text.
+
+    Every gap in the pattern is horizontal whitespace only. With a plain `\\s` the match ran
+    past the end of the line, so a bullet reading "5+ years of experience" followed by a
+    separate "Python and SQL" bullet silently became a hard "5+ years Python" filter - a
+    requirement the job description never stated, applied without anyone asking for it.
+    """
     reqs: list[Requirement] = []
     seen = set()
+    gap = r"[^\S\n]"
     pattern = re.compile(
-        r"(\d{1,2})\s*\+?\s*(?:years?|yrs?)(?:\s+of)?(?:\s+(?:professional|hands-on|industry|production))?"
-        r"(?:\s+experience)?(?:\s+(?:in|with|using|building))?\s+([A-Za-z+#./ -]{0,40})",
+        rf"(\d{{1,2}}){gap}*\+?{gap}*(?:years?|yrs?)(?:{gap}+of)?"
+        rf"(?:{gap}+(?:professional|hands-on|industry|production))?"
+        rf"(?:{gap}+experience)?(?:{gap}+(?:in|with|using|building))?{gap}+([A-Za-z+#./ -]{{0,40}})",
         re.IGNORECASE,
     )
-    for m in pattern.finditer(jd):
+    for m in pattern.finditer(lower_bound_years(jd)):
         years = float(m.group(1))
         skills = extract_skills(re.split(r"[,;(]| and | or ", m.group(2))[0])
         key = (skills[0] if skills else None, years)
@@ -206,14 +229,28 @@ class JobMatcher:
                 passages.append(buf)
         return [jd[:max_chars]] + passages  # whole-JD head + detailed passages
 
-    def semantic_search(self, jd: str, n_chunks: int = 50) -> dict[str, list[dict]]:
-        """Return candidate_id -> list of {text, section, similarity}, best similarity per chunk."""
+    def semantic_search(self, jd: str, n_chunks: int = 50,
+                        timings: dict[str, float] | None = None) -> dict[str, list[dict]]:
+        """Return candidate_id -> list of {text, section, similarity}, best similarity per chunk.
+
+        When `timings` is given, the embedding and vector-search phases are measured
+        directly into it. Earlier versions derived those phases by subtracting separately
+        timed runs from the end-to-end time, which is unsound - the subtraction produced
+        negative durations - so nothing here is inferred by residual any more.
+        """
         passages = self._jd_passages(jd)
         n = min(n_chunks, self.collection.count())
         if n <= 0:  # an empty collection would make chromadb reject n_results=0
             return {}
-        res = self.collection.query(query_embeddings=self.embedder.embed(passages), n_results=n,
+        phase = time.perf_counter()
+        query_embeddings = self.embedder.embed(passages)
+        if timings is not None:
+            timings["embed_jd"] = time.perf_counter() - phase
+        phase = time.perf_counter()
+        res = self.collection.query(query_embeddings=query_embeddings, n_results=n,
                                     include=["documents", "metadatas", "distances"])
+        if timings is not None:
+            timings["vector_search"] = time.perf_counter() - phase
         best: dict[str, dict] = {}
         for docs, metas, dists in zip(res["documents"], res["metadatas"], res["distances"]):
             for doc, meta, dist in zip(docs, metas, dists):
@@ -260,8 +297,13 @@ class JobMatcher:
     @staticmethod
     def _reasoning(score: int, cand: dict, matched: list[str], missing: list[str], critical: list[str],
                    section_sims: dict[str, float], req_notes: list[str], min_years: float | None) -> str:
-        strength = "Strong" if score >= 75 else "Good" if score >= 60 else "Moderate" if score >= 45 else "Weak"
-        parts = [f"{strength} match."]
+        # No verdict adjective. The thresholds behind "Strong match" / "Good match" were
+        # never calibrated against the relevance labels: on the shipped evaluation set 37
+        # of 268 candidate/JD pairs a human would call irrelevant were described as a
+        # "Good" or "Strong" match, including two DevOps engineers with no ML background
+        # for the ML role. The score ranks candidates against one job description; it does
+        # not grade them, and the reasoning should not imply that it does.
+        parts = [f"Score {score}/100."]
         if critical:
             parts.append(f"Has {len(matched)}/{len(critical)} critical skills"
                          + (f" ({', '.join(matched)})" if matched else "")
@@ -280,7 +322,8 @@ class JobMatcher:
 
     def match(self, jd: str, k: int = 10, must_haves: list[str] | None = None, auto_requirements: bool = True,
               critical_skills: list[str] | None = None, min_score: int = 0,
-              weights: ScoreWeights | None = None, apply_filters: bool = True) -> dict:
+              weights: ScoreWeights | None = None, apply_filters: bool = True,
+              timings: dict[str, float] | None = None) -> dict:
         """Rank candidates against `jd`.
 
         With `apply_filters=False` nobody is excluded: must-haves are still parsed, so
@@ -291,6 +334,7 @@ class JobMatcher:
         """
         if not jd or not jd.strip():
             raise MatcherError("The job description is empty.")
+        started = time.perf_counter()
         weights = weights or DEFAULT_WEIGHTS
         critical = critical_skills or critical_skills_from_jd(jd)
         parsed = [(m, parse_requirement(m)) for m in (must_haves or [])]
@@ -307,8 +351,14 @@ class JobMatcher:
         total_years_req = max((r.min_years for r in requirements if r.min_years and not r.skill), default=None)
         any_years_req = max((r.min_years for r in requirements if r.min_years), default=None)
 
-        sem_hits = self.semantic_search(jd)
+        if timings is not None:
+            timings["parse_jd"] = time.perf_counter() - started
+        sem_hits = self.semantic_search(jd, timings=timings)
+        phase = time.perf_counter()
         kw = self.keyword_scores(jd)
+        if timings is not None:
+            timings["bm25"] = time.perf_counter() - phase
+        phase = time.perf_counter()
         # Hoisted out of the per-candidate loop: this runs ~80 compiled patterns over the
         # JD, and recomputing it per candidate made scoring two thirds of query latency.
         jd_skills = extract_skills(jd)
@@ -322,9 +372,10 @@ class JobMatcher:
             skill_cov = len(matched) / len(critical) if critical else 0.0
             target_years = total_years_req or any_years_req
             exp_fit = min(1.0, cand["experience_years"] / target_years) if target_years else 1.0
-            score = round(100 * (weights.semantic * sem + weights.critical_skills * skill_cov
-                                 + weights.keyword_bm25 * kw.get(cid, 0.0)
-                                 + weights.experience_fit * exp_fit))
+            exact = 100 * (weights.semantic * sem + weights.critical_skills * skill_cov
+                           + weights.keyword_bm25 * kw.get(cid, 0.0)
+                           + weights.experience_fit * exp_fit)
+            score = round(exact)
 
             checks = [(r, *r.check(cand)) for r in requirements]
             failed = [f"{r.raw} (has {note})" for r, ok, note in checks if not ok]
@@ -353,11 +404,19 @@ class JobMatcher:
                 "experience_years": cand["experience_years"],
                 "education": cand["education"],
                 "failed_requirements": failed,
+                # Ranking uses this, not the rounded match_score: rounding to an integer
+                # before sorting threw away the information that separates near-ties and
+                # left the alphabetical tie-break to decide them.
+                "match_score_exact": round(exact, 4),
             })
 
-        # Explicit tie-break on resume_path so equal scores rank identically on every
-        # run; reproducible ranking is a precondition for the retrieval metrics.
-        results.sort(key=lambda r: (-r["match_score"], r["resume_path"]))
+        # Rank on the unrounded score, with resume_path as a deterministic tie-break so
+        # genuinely equal scores order identically on every run; reproducible ranking is a
+        # precondition for the retrieval metrics.
+        results.sort(key=lambda r: (-r["match_score_exact"], r["resume_path"]))
+        if timings is not None:
+            timings["score_and_explain"] = time.perf_counter() - phase
+            timings["total"] = time.perf_counter() - started
         return {
             "job_description": jd,
             "critical_skills": critical,
