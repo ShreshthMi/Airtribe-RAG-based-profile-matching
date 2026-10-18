@@ -1,0 +1,9 @@
+Engineer, Handset Applications
+
+You will ship the applications our customers carry in their pockets, on both major handset
+platforms, written natively for each rather than wrapped.
+
+What the role needs
+- Years shipping native applications to both major handset app stores
+- Offline-first local persistence and reliable synchronisation on poor connections
+- Keeping crash-free session rates high release over release

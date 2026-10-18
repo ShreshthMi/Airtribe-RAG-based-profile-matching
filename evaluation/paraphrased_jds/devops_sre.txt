@@ -1,0 +1,10 @@
+Engineer, Platform Reliability
+
+You will keep our production estate boring: infrastructure expressed as reviewed code,
+repeatable releases, and the orchestration layer that schedules every workload. You will own
+the alerting that wakes someone up and the review that follows.
+
+What the role needs
+- Years operating workloads on a public hosting provider at scale
+- Declarative, version-controlled provisioning of that infrastructure
+- Running a container orchestration layer in production, and automating the toil around it

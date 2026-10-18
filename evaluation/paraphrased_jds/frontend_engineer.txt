@@ -1,0 +1,10 @@
+Engineer, Interface Platform
+
+You will build the shared interface layer our product teams assemble screens from: a
+component library, the typed contracts around it, and the rendering performance budget that
+keeps pages fast on mid-range devices.
+
+What the role needs
+- Several years building browser interfaces with a declarative component framework
+- A typed superset of the browser scripting language, used throughout
+- Care about accessibility and perceived load time

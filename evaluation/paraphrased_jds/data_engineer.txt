@@ -1,0 +1,10 @@
+Engineer, Analytics Infrastructure
+
+You will own the movement of events from where they are produced to where analysts use
+them: continuous ingestion of high-volume event streams, scheduled transformation of raw
+tables into modelled ones, and the warehouse those tables live in.
+
+What the role needs
+- Experience with distributed batch processing over very large datasets
+- Orchestrating dependent transformation jobs on a schedule and keeping them observable
+- Modelling warehouse tables that analysts can trust

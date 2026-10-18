@@ -1,0 +1,10 @@
+Scientist, Product Analytics
+
+You will decide what our product changes are actually worth: designing controlled
+experiments, analysing their results honestly, and building predictive models of customer
+behaviour that the business acts on.
+
+What the role needs
+- Designing and reading controlled online experiments, including when not to trust one
+- Building predictive models of churn and demand, and explaining them to non-specialists
+- Querying the warehouse yourself rather than waiting for someone else to

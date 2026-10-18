@@ -1,0 +1,10 @@
+Senior Engineer, Money Movement
+
+Our settlement systems move money between institutions and cannot lose a transaction. You
+will design the services that process those flows, make them idempotent under retry, and
+keep latency predictable while volume grows.
+
+What the role needs
+- Long experience building server-side systems on a managed virtual-machine runtime
+- Designing small independent services that communicate over durable append-only logs
+- Fast in-memory stores for hot state, and orchestrated deployment of the whole estate

@@ -1,0 +1,12 @@
+Senior Engineer, Applied Intelligence Platform
+
+We are building the systems that let our products understand and generate written language
+at scale. You will take models from a research notebook all the way to serving live traffic:
+training them on large text corpora, evaluating answer quality offline, and running the
+retrieval layer that grounds generated answers in our own documents.
+
+What the role needs
+- Several years writing production services, not just notebooks
+- Depth in models that learn representations of text, and in grounding answers against a
+  searchable corpus of company documents
+- Comfort shipping and operating those services on managed, orchestrated infrastructure
